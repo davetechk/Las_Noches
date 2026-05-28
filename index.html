@@ -358,8 +358,17 @@
         <span class="entry-count-pill"><span id="entryCount">0</span> entries today</span>
         <button id="newSessionBtn" class="btn btn-outline btn-sm">Change Date</button>
         <button id="signOutBtn" class="btn btn-outline btn-sm" style="display:none">Sign Out</button>
-        <a href="admin.html" class="btn btn-outline btn-sm" style="color:var(--gold);border-color:rgba(201,168,76,.3)">Admin ↗</a>
       </div>
+      <!-- Admin link always visible on the far right -->
+      <a href="admin.html" class="btn btn-sm" style="
+        color:var(--gold);
+        border:1px solid rgba(201,168,76,.35);
+        background:rgba(201,168,76,.08);
+        border-radius:8px;
+        flex-shrink:0;
+        margin-left:.5rem;
+        font-weight:500;
+      ">Admin ↗</a>
     </div>
 
     <!-- Layout -->
