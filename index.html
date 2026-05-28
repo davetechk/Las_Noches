@@ -368,6 +368,29 @@
       <div class="entry-panel">
         <h3>New Visitor Entry</h3>
 
+        <!-- Customer counter -->
+        <div id="customerCounterBox" style="
+          display:flex;align-items:center;gap:1rem;
+          background:rgba(78,158,255,.07);
+          border:1px solid rgba(78,158,255,.18);
+          border-radius:12px;padding:.85rem 1.1rem;
+          margin-bottom:1.4rem;
+        ">
+          <div style="
+            width:48px;height:48px;border-radius:12px;flex-shrink:0;
+            background:linear-gradient(135deg,var(--navy-600),var(--blue-400));
+            display:flex;align-items:center;justify-content:center;
+            font-size:1.3rem;
+          ">👥</div>
+          <div>
+            <div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600">Customers Today</div>
+            <div style="display:flex;align-items:baseline;gap:.4rem;margin-top:.1rem">
+              <span id="customerCountBig" style="font-family:var(--font-display);font-size:2rem;font-weight:600;color:var(--accent);line-height:1">0</span>
+              <span style="font-size:.8rem;color:var(--text-muted)">visitors logged</span>
+            </div>
+          </div>
+        </div>
+
         <form id="entryForm" autocomplete="off">
 
           <div class="form-group">

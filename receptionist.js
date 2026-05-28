@@ -274,7 +274,11 @@ async function loadTodayEntries() {
   });
 
   renderEntriesTable(entries);
-  document.getElementById('entryCount').textContent = entries.length;
+  const count = entries.length;
+  document.getElementById('entryCount').textContent = count;
+  // Update the big counter box in the form panel
+  const bigCount = document.getElementById('customerCountBig');
+  if (bigCount) bigCount.textContent = count;
 }
 
 // ── Render entries table with expiry indicator ────────────────

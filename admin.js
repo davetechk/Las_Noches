@@ -203,13 +203,17 @@ async function displayEntriesForDate(dateStr) {
 function renderDateHeading(dateStr, session) {
   const heading = document.getElementById('viewingDateLabel');
   const sub     = document.getElementById('viewingDateSub');
+  const counter = document.getElementById('adminCustomerCount');
 
   heading.textContent = formatDate(dateStr);
 
+  const count = currentEntries.length;
+  if (counter) counter.textContent = count;
+
   if (session) {
-    sub.textContent = `Logged by ${session.receptionist_name}  ·  ${currentEntries.length} entr${currentEntries.length === 1 ? 'y' : 'ies'}`;
+    sub.textContent = `Logged by ${session.receptionist_name}  ·  ${count} customer${count === 1 ? '' : 's'}`;
   } else {
-    sub.textContent = `${currentEntries.length} entr${currentEntries.length === 1 ? 'y' : 'ies'}`;
+    sub.textContent = `${count} customer${count === 1 ? '' : 's'}`;
   }
 }
 
@@ -338,6 +342,7 @@ function exportCSV(entries, filename, dateStr, session) {
     header,
     ...rows,
     [],
+    ['Total Customers', entries.length],
     ['Total Revenue', '', '', '', '', '', '', '', entries.reduce((s,e) => s + (parseFloat(e.amount_paid)||0), 0).toFixed(2)],
   ].map(row => row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
 

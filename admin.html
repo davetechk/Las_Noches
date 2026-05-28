@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Las Noches · Admin</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest-admin.json" />
+  <meta name="theme-color" content="#0a1628" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="LN Admin" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
   <link rel="stylesheet" href="styles.css" />
   <style>
     /* ── Screen visibility ── */
@@ -512,6 +521,20 @@
               <h2 id="viewingDateLabel">—</h2>
               <p id="viewingDateSub" class="view-sub"></p>
             </div>
+            <!-- Customer count badge -->
+            <div style="
+              display:flex;align-items:center;gap:.75rem;
+              background:rgba(78,158,255,.07);
+              border:1px solid rgba(78,158,255,.18);
+              border-radius:12px;padding:.7rem 1.1rem;
+              flex-shrink:0;
+            ">
+              <span style="font-size:1.3rem">👥</span>
+              <div>
+                <div style="font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600">Customers</div>
+                <div style="font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--accent);line-height:1" id="adminCustomerCount">—</div>
+              </div>
+            </div>
           </div>
 
           <div class="admin-table-wrap">
@@ -548,5 +571,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="app.js"></script>
   <script src="admin.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(r => console.log('SW registered:', r.scope))
+        .catch(e => console.warn('SW failed:', e));
+    }
+  </script>
 </body>
 </html>
