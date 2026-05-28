@@ -2,19 +2,21 @@
 // Las Noches – Service Worker  (PWA + background notifications)
 // ============================================================
 
-const CACHE_NAME = 'lasnoches-v1';
+const CACHE_NAME = 'lasnoches-v3';
 
+// Use relative paths so the SW works on any host/subfolder
+const BASE = self.registration.scope;
 const SHELL_FILES = [
-  '/index.html',
-  '/admin.html',
-  '/styles.css',
-  '/app.js',
-  '/receptionist.js',
-  '/admin.js',
-  '/manifest.json',
-  '/manifest-admin.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  BASE + 'index.html',
+  BASE + 'admin.html',
+  BASE + 'styles.css',
+  BASE + 'app.js',
+  BASE + 'receptionist.js',
+  BASE + 'admin.js',
+  BASE + 'manifest.json',
+  BASE + 'manifest-admin.json',
+  BASE + 'icons/icon-192.png',
+  BASE + 'icons/icon-512.png',
 ];
 
 // ── Install ──────────────────────────────────────────────────
@@ -104,7 +106,7 @@ self.addEventListener('notificationclick', event => {
           return client.focus();
         }
       }
-      return clients.openWindow('/index.html');
+      return clients.openWindow(BASE + 'index.html');
     })
   );
 });
