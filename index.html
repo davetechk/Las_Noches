@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Las Noches · Receptionist</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0a1628" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Las Noches" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
   <link rel="stylesheet" href="styles.css" />
   <style>
     /* ── Screen visibility ── */
@@ -460,6 +469,7 @@
                   <th>Time Out</th>
                   <th>Duration</th>
                   <th>Amount</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody id="entriesTableBody"></tbody>
@@ -481,8 +491,14 @@
   <script src="app.js"></script>
   <script src="receptionist.js"></script>
   <script>
-    // Auto-fill time in on load
-    window.addEventListener('load', setTimeInNow);
+    window.addEventListener('load', () => {
+      setTimeInNow();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.warn('SW failed:', err));
+      }
+    });
   </script>
 </body>
 </html>
