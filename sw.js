@@ -2,7 +2,7 @@
 // Las Noches – Service Worker  (PWA + background notifications)
 // ============================================================
 
-const CACHE_NAME = 'lasnoches-v3';
+const CACHE_NAME = 'lasnoches-v4';
 
 // Use relative paths so the SW works on any host/subfolder
 const BASE = self.registration.scope;
@@ -15,8 +15,8 @@ const SHELL_FILES = [
   BASE + 'admin.js',
   BASE + 'manifest.json',
   BASE + 'manifest-admin.json',
-  BASE + 'icons/icon-192.png',
-  BASE + 'icons/icon-512.png',
+  BASE + 'icon-192.png',
+  BASE + 'icon-512.png',
 ];
 
 // ── Install ──────────────────────────────────────────────────

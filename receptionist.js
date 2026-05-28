@@ -89,8 +89,8 @@ function fireExpiryNotification(entry) {
     // Fallback: direct notification
     new Notification(title, {
       body,
-      icon: 'icons/icon-192.png',
-      badge: 'icons/icon-192.png',
+      icon: 'icon-192.png',
+      badge: 'icon-192.png',
       tag: `expiry-${entry.id}`,
       requireInteraction: true,
     });
