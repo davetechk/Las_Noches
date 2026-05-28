@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Las Noches · Receptionist</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Screen visibility ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── Login screen ── */
+    #loginScreen.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .lock-icon-wrap {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, var(--navy-700), var(--blue-400));
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 6px 24px var(--accent-glow);
+    }
+
+    /* ── Session setup ── */
+    #sessionSetupScreen.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .session-card {
+      max-width: 460px;
+      width: 100%;
+    }
+
+    .session-card .card-header h2 {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+    }
+
+    /* ── Entry screen ── */
+    #entryScreen {
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    #entryScreen.active { display: flex; flex-direction: column; }
+
+    .topbar {
+      background: rgba(10,22,40,.95);
+      border-bottom: 1px solid var(--border);
+      padding: .75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .topbar-brand .brand-dot {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--navy-600), var(--blue-400));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .9rem;
+    }
+
+    .topbar-brand .brand-name {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    .topbar-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    #sessionInfo {
+      font-size: .8rem;
+      color: var(--text-secondary);
+      letter-spacing: .03em;
+    }
+
+    .entry-count-pill {
+      background: rgba(78,158,255,.12);
+      border: 1px solid rgba(78,158,255,.2);
+      border-radius: 999px;
+      padding: .25rem .75rem;
+      font-size: .78rem;
+      color: var(--blue-300);
+    }
+
+    /* ── Main content split ── */
+    .entry-layout {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 0;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .entry-panel {
+      background: rgba(10,22,40,.5);
+      border-right: 1px solid var(--border);
+      padding: 1.75rem 1.5rem;
+      overflow-y: auto;
+    }
+
+    .entry-panel h3 {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    .log-panel {
+      padding: 1.75rem 1.5rem;
+      overflow-y: auto;
+    }
+
+    .log-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .log-panel-header h3 {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+    }
+
+    /* ── Form grid ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .85rem;
+    }
+
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: .85rem;
+    }
+
+    /* ── Time fields ── */
+    input[type="time"].form-control {
+      cursor: pointer;
+    }
+
+    /* ── Amount field with prefix ── */
+    .input-prefix-wrap {
+      position: relative;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: .9rem;
+      pointer-events: none;
+    }
+
+    .input-prefix-wrap .form-control {
+      padding-left: 2rem;
+    }
+
+    /* ── Duration read-only ── */
+    input[readonly].form-control {
+      background: rgba(78,158,255,.04);
+      color: var(--text-secondary);
+      cursor: default;
+    }
+
+    /* ── Submit btn area ── */
+    .submit-area {
+      margin-top: 1.5rem;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Table wrapper ── */
+    .table-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .table-scroll { overflow-x: auto; }
+
+    #tableEmpty {
+      display: none;
+      padding: 3rem 1rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    #tableEmpty .empty-icon { font-size: 2rem; margin-bottom: .75rem; opacity: .3; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .entry-layout {
+        grid-template-columns: 1fr;
+      }
+      .entry-panel {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+      .topbar-meta { gap: .5rem; }
+    }
+  </style>
+</head>
+
+<body class="page">
+
+  <!-- ══════════════════ LOGIN SCREEN ══════════════════ -->
+  <section id="loginScreen" class="screen active">
+    <div class="auth-card">
+      <div class="brand-logo">
+        <div class="logo-icon">🏙</div>
+        <h1>Las Noches</h1>
+        <p class="brand-sub">Receptionist Portal</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label" for="passwordInput">Access Password</label>
+          <input
+            type="password"
+            id="passwordInput"
+            class="form-control"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+        <div class="submit-area">
+          <button type="submit" id="loginBtn" class="btn btn-primary btn-lg">
+            Unlock Portal
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════ SESSION SETUP ══════════════════ -->
+  <section id="sessionSetupScreen" class="screen">
+    <div class="session-card">
+      <div class="card">
+        <div class="card-header">
+          <h2>Start Today's Session</h2>
+          <button id="signOutBtn" class="btn btn-outline btn-sm">Sign Out</button>
+        </div>
+        <div class="card-body">
+          <p class="text-secondary" style="font-size:.88rem;margin-bottom:1.5rem">
+            Confirm the date and enter your name before logging entries.
+          </p>
+
+          <form id="sessionForm">
+            <div class="form-group">
+              <label class="form-label" for="sessionDateInput">Session Date</label>
+              <input
+                type="date"
+                id="sessionDateInput"
+                class="form-control"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="receptionistNameInput">Your Name</label>
+              <input
+                type="text"
+                id="receptionistNameInput"
+                class="form-control"
+                placeholder="e.g. David"
+                autocomplete="name"
+                required
+              />
+            </div>
+
+            <div class="submit-area">
+              <button type="submit" id="startSessionBtn" class="btn btn-primary btn-lg">
+                Begin Session →
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════ ENTRY SCREEN ══════════════════ -->
+  <section id="entryScreen" class="screen">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar-brand">
+        <div class="brand-dot">🏙</div>
+        <span class="brand-name">Las Noches</span>
+      </div>
+      <div class="topbar-meta">
+        <span id="sessionInfo" class="text-secondary"></span>
+        <span class="entry-count-pill"><span id="entryCount">0</span> entries today</span>
+        <button id="newSessionBtn" class="btn btn-outline btn-sm">Change Date</button>
+        <button id="signOutBtn" class="btn btn-outline btn-sm" style="display:none">Sign Out</button>
+      </div>
+    </div>
+
+    <!-- Layout -->
+    <div class="entry-layout">
+
+      <!-- LEFT: Entry form -->
+      <div class="entry-panel">
+        <h3>New Visitor Entry</h3>
+
+        <form id="entryForm" autocomplete="off">
+
+          <div class="form-group">
+            <label class="form-label" for="voucherInput">Voucher Code</label>
+            <input
+              type="text"
+              id="voucherInput"
+              class="form-control"
+              placeholder="e.g. LN-2024-001"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="seatSelect">Seat / Space</label>
+            <select id="seatSelect" class="form-select" required>
+              <option value="">Select seat</option>
+              <option value="1">Seat 1</option>
+              <option value="2">Seat 2</option>
+              <option value="3">Seat 3</option>
+              <option value="4">Seat 4</option>
+              <option value="5">Seat 5</option>
+              <option value="6">Seat 6</option>
+              <option value="7">Seat 7</option>
+              <option value="8">Seat 8</option>
+              <option value="9">Seat 9</option>
+              <option value="10">Seat 10</option>
+              <option value="11">Seat 11</option>
+              <option value="12">Seat 12</option>
+              <option value="13">Seat 13</option>
+              <option value="14">Seat 14</option>
+              <option value="15">Seat 15</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="timeInInput">Time In</label>
+              <input type="time" id="timeInInput" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="timeOutInput">Time Out</label>
+              <input type="time" id="timeOutInput" class="form-control" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="durationInput">Duration (hrs)</label>
+              <input
+                type="number"
+                id="durationInput"
+                class="form-control"
+                placeholder="Auto-computed"
+                step="0.01"
+                min="0"
+                readonly
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="amountInput">Amount Paid</label>
+              <div class="input-prefix-wrap">
+                <span class="input-prefix">₦</span>
+                <input
+                  type="number"
+                  id="amountInput"
+                  class="form-control"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="submit-area">
+            <button type="submit" id="submitEntryBtn" class="btn btn-success btn-lg">
+              ＋ Save Entry
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- RIGHT: Today's log -->
+      <div class="log-panel">
+        <div class="log-panel-header">
+          <h3>Today's Log</h3>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Voucher</th>
+                  <th>Seat</th>
+                  <th>Time In</th>
+                  <th>Time Out</th>
+                  <th>Duration</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody id="entriesTableBody"></tbody>
+            </table>
+          </div>
+          <div id="tableEmpty">
+            <div class="empty-icon">📋</div>
+            <p>No entries yet. Add your first visitor above.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /entry-layout -->
+  </section>
+
+
+  <!-- ══════════════════ SCRIPTS ══════════════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script src="receptionist.js"></script>
+  <script>
+    // Auto-fill time in on load
+    window.addEventListener('load', setTimeInNow);
+  </script>
+</body>
+</html>

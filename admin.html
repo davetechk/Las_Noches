@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Las Noches · Admin</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Screen visibility ── */
+    .a-screen { display: none; }
+    .a-screen.active { display: block; }
+
+    /* ── Admin login ── */
+    #adminLoginScreen.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* ── Dashboard ── */
+    #adminDashboardScreen.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── Admin topbar ── */
+    .admin-topbar {
+      background: rgba(10,22,40,.95);
+      border-bottom: 1px solid var(--border);
+      padding: .75rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .admin-topbar .brand {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .brand-dot {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--navy-600), var(--blue-400));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .9rem;
+    }
+
+    .brand-name { font-family: var(--font-display); font-size: 1.1rem; }
+    .brand-role {
+      font-size: .7rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-top: .1rem;
+    }
+
+    .admin-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    #adminUserLabel { font-size: .82rem; color: var(--text-secondary); }
+
+    /* ── Page body ── */
+    .admin-body {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ── Stats row ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      backdrop-filter: blur(12px);
+    }
+
+    .stat-card .stat-label {
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: .5rem;
+    }
+
+    .stat-card .stat-value {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      line-height: 1;
+    }
+
+    .stat-card .stat-sub {
+      font-size: .75rem;
+      color: var(--text-muted);
+      margin-top: .35rem;
+    }
+
+    /* ── Main grid ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    /* ── Sidebar controls ── */
+    .sidebar-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .panel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+
+    .panel-card-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .panel-card-header h4 {
+      font-size: .82rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .panel-card-body { padding: 1.25rem; }
+
+    /* ── Date tabs ── */
+    .tab-group {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: 1rem;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: .55rem .5rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: .8rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: center;
+    }
+
+    .tab-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+    .tab-btn.active {
+      background: rgba(78,158,255,.12);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── Custom days block ── */
+    .custom-days-row {
+      display: flex;
+      gap: .5rem;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .custom-days-row .form-control {
+      width: 80px;
+      text-align: center;
+    }
+
+    .custom-days-row .form-label-inline {
+      font-size: .8rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    /* ── Format radio ── */
+    .format-radio-group {
+      display: flex;
+      gap: 1rem;
+      margin: .75rem 0;
+    }
+
+    .format-radio-group label {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .85rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .format-radio-group input[type="radio"] {
+      accent-color: var(--accent);
+    }
+
+    /* ── Download section ── */
+    .download-current {
+      background: rgba(78,158,255,.04);
+      border: 1px dashed rgba(78,158,255,.2);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+
+    .download-current .dl-date {
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: .75rem;
+    }
+
+    .dl-btn-row {
+      display: flex;
+      gap: .5rem;
+    }
+
+    /* ── Main view area ── */
+    .view-area {}
+
+    .view-area-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .view-area-header h2 {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      color: var(--text-primary);
+    }
+
+    .view-area-header .view-sub {
+      font-size: .82rem;
+      color: var(--text-muted);
+      margin-top: .2rem;
+    }
+
+    /* ── Table wrapper ── */
+    .admin-table-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+
+    .admin-table-scroll { overflow-x: auto; }
+
+    #adminTableEmpty {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 1rem;
+      color: var(--text-muted);
+      text-align: center;
+      gap: .75rem;
+    }
+
+    #adminTableEmpty .empty-icon { font-size: 2.5rem; opacity: .3; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .admin-body { padding: 1rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .admin-topbar { padding: .75rem 1rem; }
+    }
+
+    @media (max-width: 380px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body class="page">
+
+  <!-- ══════════════════ ADMIN LOGIN ══════════════════ -->
+  <section id="adminLoginScreen" class="a-screen active">
+    <div class="auth-card">
+      <div class="brand-logo">
+        <div class="logo-icon">⚙</div>
+        <h1>Las Noches</h1>
+        <p class="brand-sub">Admin Portal</p>
+      </div>
+
+      <form id="adminLoginForm" autocomplete="off">
+        <div class="form-group">
+          <label class="form-label" for="adminEmailInput">Email Address</label>
+          <input
+            type="email"
+            id="adminEmailInput"
+            class="form-control"
+            placeholder="admin@lasnoches.com"
+            autocomplete="email"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="adminPasswordInput">Password</label>
+          <input
+            type="password"
+            id="adminPasswordInput"
+            class="form-control"
+            placeholder="Enter password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+
+        <div style="margin-top:1.5rem">
+          <button type="submit" id="adminLoginBtn" class="btn btn-primary btn-lg">
+            Sign In
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════ ADMIN DASHBOARD ══════════════════ -->
+  <section id="adminDashboardScreen" class="a-screen">
+
+    <!-- Topbar -->
+    <div class="admin-topbar">
+      <div class="brand">
+        <div class="brand-dot">⚙</div>
+        <div>
+          <div class="brand-name">Las Noches</div>
+          <div class="brand-role">Admin</div>
+        </div>
+      </div>
+      <div class="admin-topbar-right">
+        <span id="adminUserLabel"></span>
+        <button id="adminSignOutBtn" class="btn btn-outline btn-sm">Sign Out</button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="admin-body">
+
+      <!-- ── Stats ── -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Today's Entries</div>
+          <div class="stat-value text-accent" id="statToday">—</div>
+          <div class="stat-sub">Visitors logged today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Today's Revenue</div>
+          <div class="stat-value text-gold" id="statRevenue">—</div>
+          <div class="stat-sub">Collected today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Entries</div>
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-sub">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Days</div>
+          <div class="stat-value text-success" id="statDates">—</div>
+          <div class="stat-sub">Days with entries</div>
+        </div>
+      </div>
+
+      <!-- ── Main grid ── -->
+      <div class="dashboard-grid">
+
+        <!-- ── Sidebar ── -->
+        <div class="sidebar-panel">
+
+          <!-- Browse by date -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <span>📅</span>
+              <h4>Browse Entries</h4>
+            </div>
+            <div class="panel-card-body">
+
+              <!-- Quick tabs -->
+              <div class="tab-group">
+                <button class="tab-btn active" data-range="today">Today</button>
+                <button class="tab-btn" data-range="yesterday">Yesterday</button>
+              </div>
+
+              <!-- Date dropdown -->
+              <div class="form-group">
+                <label class="form-label" for="dateDropdown">Pick Any Date</label>
+                <select id="dateDropdown" class="form-select">
+                  <option value="">— Loading dates… —</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Download selected date -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <span>⬇</span>
+              <h4>Download Current View</h4>
+            </div>
+            <div class="panel-card-body">
+              <div class="download-current">
+                <div class="dl-date" id="downloadDateLabel">No date selected</div>
+                <div class="dl-btn-row">
+                  <button id="downloadPdfBtn" class="btn btn-outline btn-sm" style="flex:1">
+                    PDF
+                  </button>
+                  <button id="downloadCsvBtn" class="btn btn-gold btn-sm" style="flex:1">
+                    CSV
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bulk download -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <span>📦</span>
+              <h4>Bulk Download</h4>
+            </div>
+            <div class="panel-card-body">
+              <p class="text-secondary" style="font-size:.82rem;margin-bottom:1rem">
+                Download entries for the last <em>N</em> days counting from today.
+              </p>
+
+              <div class="custom-days-row">
+                <input
+                  type="number"
+                  id="customDaysInput"
+                  class="form-control"
+                  value="3"
+                  min="1"
+                  max="365"
+                />
+                <span class="form-label-inline">days back</span>
+              </div>
+
+              <div class="format-radio-group">
+                <label>
+                  <input type="radio" name="dlFormat" value="pdf" /> PDF
+                </label>
+                <label>
+                  <input type="radio" name="dlFormat" value="csv" checked /> CSV
+                </label>
+              </div>
+
+              <button id="customDaysDownloadBtn" class="btn btn-primary" style="width:100%">
+                Download
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /sidebar -->
+
+        <!-- ── Main view ── -->
+        <div class="view-area">
+          <div class="view-area-header">
+            <div>
+              <h2 id="viewingDateLabel">—</h2>
+              <p id="viewingDateSub" class="view-sub"></p>
+            </div>
+          </div>
+
+          <div class="admin-table-wrap">
+            <div class="admin-table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Voucher Code</th>
+                    <th>Seat</th>
+                    <th>Time In</th>
+                    <th>Time Out</th>
+                    <th>Duration</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="adminTableBody"></tbody>
+              </table>
+            </div>
+
+            <div id="adminTableEmpty">
+              <div class="empty-icon">🗂</div>
+              <p class="text-muted">No entries found for this date.</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /dashboard-grid -->
+    </div><!-- /admin-body -->
+  </section>
+
+
+  <!-- ══════════════════ SCRIPTS ══════════════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
