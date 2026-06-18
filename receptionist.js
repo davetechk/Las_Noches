@@ -133,7 +133,7 @@ async function handleLogin(e) {
   if (!password) return;
 
   setLoading(btn, true);
-  const RECEPTIONIST_EMAIL = 'receptionist@lasnoches.com';
+  const RECEPTIONIST_EMAIL = 'recep@gmail.com';
   const { data, error } = await db.auth.signInWithPassword({ email: RECEPTIONIST_EMAIL, password });
   setLoading(btn, false);
 
