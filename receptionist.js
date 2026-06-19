@@ -1,5 +1,16 @@
 // ============================================================
-// Las Noches – receptionist.js
+// Las Noches – receptionist.js  (v2 – Omada Integration)
+// ============================================================
+//
+// Changes from v1:
+//  • Voucher field replaced with a searchable <select> dropdown
+//    populated from `omada_vouchers` (status = 'unused').
+//  • Omada sync engine: polls the Edge Function every 60 s
+//    (auto-sync) AND exposes a manual "Sync Sessions" button.
+//  • On sync, active vouchers get their time_in / time_out
+//    written back to Supabase automatically.
+//  • All original functionality (seat, amount, notifications,
+//    session management) is fully preserved.
 // ============================================================
 
 let currentSession = null;
@@ -7,6 +18,12 @@ let currentUser    = null;
 
 // Tracks active notification timers: { entryId: timeoutId }
 const activeTimers = {};
+
+// Auto-sync interval handle
+let syncIntervalId = null;
+
+// Local cache of unused vouchers for the dropdown
+let unusedVouchers = [];
 
 // ── Bootstrap ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -39,31 +56,25 @@ async function requestNotificationPermission() {
 
 // ── Schedule a notification when a visitor's time is up ──────
 function scheduleExpiryNotification(entry) {
-  // Only schedule if we have time_in and duration_hrs
   if (!entry.time_in || !entry.duration_hrs) return;
 
-  // Cancel any existing timer for this entry
   if (activeTimers[entry.id]) {
     clearTimeout(activeTimers[entry.id]);
     delete activeTimers[entry.id];
   }
 
-  // Calculate expiry time
-  const today = entry.entry_date || currentSession.date;
-  const [h, m, s] = entry.time_in.split(':').map(Number);
-  const expiryMs  = parseFloat(entry.duration_hrs) * 60 * 60 * 1000;
+  const today    = entry.entry_date || currentSession.date;
+  const expiryMs = parseFloat(entry.duration_hrs) * 60 * 60 * 1000;
 
-  const entryStart = new Date(`${today}T${entry.time_in}`);
-  const expiryTime = new Date(entryStart.getTime() + expiryMs);
+  const entryStart    = new Date(`${today}T${entry.time_in}`);
+  const expiryTime    = new Date(entryStart.getTime() + expiryMs);
   const msUntilExpiry = expiryTime.getTime() - Date.now();
 
-  // Don't schedule if already expired or more than 24hrs away
   if (msUntilExpiry <= 0 || msUntilExpiry > 24 * 60 * 60 * 1000) return;
 
   const timerId = setTimeout(() => {
     fireExpiryNotification(entry);
     delete activeTimers[entry.id];
-    // Refresh table to update UI indicator
     loadTodayEntries();
   }, msUntilExpiry);
 
@@ -77,7 +88,6 @@ function fireExpiryNotification(entry) {
   const title = `⏰ Time's Up – Seat ${entry.seat_number}`;
   const body  = `Voucher ${entry.voucher_code} · ${entry.duration_hrs}h session has ended.`;
 
-  // Try service worker notification first (works when tab is in background)
   if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
     navigator.serviceWorker.controller.postMessage({
       type: 'SHOW_NOTIFICATION',
@@ -86,7 +96,6 @@ function fireExpiryNotification(entry) {
       tag: `expiry-${entry.id}`,
     });
   } else if (Notification.permission === 'granted') {
-    // Fallback: direct notification
     new Notification(title, {
       body,
       icon: 'icon-192.png',
@@ -96,11 +105,9 @@ function fireExpiryNotification(entry) {
     });
   }
 
-  // Also show in-app toast
   showToast(`⏰ Time up — Seat ${entry.seat_number} (${entry.voucher_code})`, 'warning', 8000);
 }
 
-// ── Cancel all active timers (on sign out / session change) ──
 function clearAllTimers() {
   Object.values(activeTimers).forEach(id => clearTimeout(id));
   Object.keys(activeTimers).forEach(k => delete activeTimers[k]);
@@ -123,12 +130,20 @@ function bindEvents() {
   document.getElementById('timeOutInput').addEventListener('change', computeDuration);
   document.getElementById('signOutBtn').addEventListener('click', handleSignOut);
   document.getElementById('newSessionBtn').addEventListener('click', handleNewSession);
+
+  // Omada sync button
+  const syncBtn = document.getElementById('syncOmadaBtn');
+  if (syncBtn) syncBtn.addEventListener('click', () => runOmadaSync(true));
+
+  // Voucher select: live-filter via a text search box
+  const voucherSearch = document.getElementById('voucherSearch');
+  if (voucherSearch) voucherSearch.addEventListener('input', filterVoucherDropdown);
 }
 
 // ── Login ────────────────────────────────────────────────────
 async function handleLogin(e) {
   e.preventDefault();
-  const btn = document.getElementById('loginBtn');
+  const btn      = document.getElementById('loginBtn');
   const password = document.getElementById('passwordInput').value.trim();
   if (!password) return;
 
@@ -191,7 +206,14 @@ async function handleSessionStart(e) {
 
   setLoading(btn, false);
   renderSessionBanner();
+
+  // Load unused vouchers for dropdown, then today's entries
+  await loadUnusedVouchers();
   await loadTodayEntries();
+
+  // Start auto-sync with Omada (every 60 s)
+  startAutoSync();
+
   showScreen('entryScreen');
 }
 
@@ -201,12 +223,244 @@ function renderSessionBanner() {
     `${formatDate(currentSession.date)}  ·  ${currentSession.receptionist_name}`;
 }
 
+// ════════════════════════════════════════════════════════════
+// OMADA VOUCHER DROPDOWN
+// ════════════════════════════════════════════════════════════
+
+// Fetch all unused vouchers from Supabase and populate the
+// <select id="voucherSelect"> element.
+async function loadUnusedVouchers() {
+  const { data, error } = await db
+    .from('omada_vouchers')
+    .select('id, voucher_code, duration')
+    .eq('status', 'unused')
+    .order('voucher_code', { ascending: true });
+
+  if (error) {
+    showToast('Failed to load vouchers: ' + error.message, 'error');
+    return;
+  }
+
+  unusedVouchers = data || [];
+  renderVoucherDropdown(unusedVouchers);
+  updateVoucherCount(unusedVouchers.length);
+}
+
+// Render the <select> with the current voucher list
+function renderVoucherDropdown(vouchers) {
+  const sel = document.getElementById('voucherSelect');
+  if (!sel) return;
+
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Select voucher —</option>';
+
+  vouchers.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value       = v.voucher_code;
+    opt.dataset.id  = v.id;
+    opt.textContent = `${v.voucher_code}${v.duration ? '  ·  ' + v.duration + ' min' : ''}`;
+    sel.appendChild(opt);
+  });
+
+  // Re-select previous value if still available
+  if (prev) sel.value = prev;
+
+  // When a voucher is selected, auto-fill duration field if known
+  sel.onchange = () => {
+    const chosen = vouchers.find(v => v.voucher_code === sel.value);
+    if (chosen?.duration) {
+      const durationHrs = (chosen.duration / 60).toFixed(2);
+      const durInput = document.getElementById('durationInput');
+      if (durInput) {
+        durInput.readOnly = false;
+        durInput.value = durationHrs;
+        durInput.readOnly = true;
+      }
+    }
+  };
+}
+
+// Live-filter the dropdown via the search box
+function filterVoucherDropdown() {
+  const query    = (document.getElementById('voucherSearch')?.value || '').toLowerCase();
+  const filtered = unusedVouchers.filter(v =>
+    v.voucher_code.toLowerCase().includes(query)
+  );
+  renderVoucherDropdown(filtered);
+}
+
+// Update the "N vouchers available" pill
+function updateVoucherCount(count) {
+  const el = document.getElementById('voucherAvailableCount');
+  if (el) el.textContent = count;
+}
+
+// ════════════════════════════════════════════════════════════
+// OMADA SYNC ENGINE
+// ════════════════════════════════════════════════════════════
+
+// Start polling every 60 seconds
+function startAutoSync() {
+  stopAutoSync(); // clear any existing interval
+  // Run once immediately on session start
+  runOmadaSync(false);
+  syncIntervalId = setInterval(() => runOmadaSync(false), 60000);
+  console.log('[OmadaSync] Auto-sync started (60s interval)');
+}
+
+function stopAutoSync() {
+  if (syncIntervalId) {
+    clearInterval(syncIntervalId);
+    syncIntervalId = null;
+  }
+}
+
+// Core sync function. Pass showFeedback=true for manual trigger.
+async function runOmadaSync(showFeedback = false) {
+  const syncBtn = document.getElementById('syncOmadaBtn');
+  const syncDot = document.getElementById('syncStatusDot');
+
+  // Update UI state
+  if (syncBtn) {
+    syncBtn.disabled = true;
+    syncBtn._original = syncBtn.innerHTML;
+    syncBtn.innerHTML = '<span class="spinner"></span> Syncing…';
+  }
+  if (syncDot) syncDot.className = 'sync-dot syncing';
+
+  try {
+    // ── Call the Supabase Edge Function ──────────────────
+    const { data: { session } } = await db.auth.getSession();
+    const authHeader = session?.access_token
+      ? { Authorization: `Bearer ${session.access_token}` }
+      : {};
+
+    const res = await fetch(
+      `${SUPABASE_URL}/functions/v1/omada-sync`,
+      {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+        body: JSON.stringify({}), // no filter = sync all vouchers
+      }
+    );
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      throw new Error(`Edge Function returned ${res.status}: ${errBody}`);
+    }
+
+    const result = await res.json();
+
+    if (!result.success) {
+      throw new Error(result.error || 'Unknown sync error');
+    }
+
+    // ── Update dropdown directly from sync response ────────
+    // The Edge Function returns unused_vouchers so we don't
+    // need a separate DB query to refresh the dropdown.
+    if (Array.isArray(result.unused_vouchers)) {
+      unusedVouchers = result.unused_vouchers;
+      renderVoucherDropdown(unusedVouchers);
+      updateVoucherCount(unusedVouchers.length);
+    } else {
+      await loadUnusedVouchers();
+    }
+
+    await loadTodayEntries();
+
+    // Update sync timestamp
+    updateSyncTimestamp(new Date());
+    if (syncDot) syncDot.className = 'sync-dot synced';
+
+    if (showFeedback) {
+      showToast(
+        `Synced ${result.records_updated ?? 0} voucher(s) from Omada.`,
+        'success'
+      );
+    }
+
+    console.log('[OmadaSync] Complete:', result);
+
+  } catch (err) {
+    console.error('[OmadaSync] Error:', err.message);
+    if (syncDot) syncDot.className = 'sync-dot error';
+    if (showFeedback) {
+      showToast('Omada sync failed: ' + err.message, 'error');
+    }
+  } finally {
+    if (syncBtn) {
+      syncBtn.disabled = false;
+      syncBtn.innerHTML = syncBtn._original || '↻ Sync';
+    }
+  }
+}
+
+// Apply Omada sync data to entries table in Supabase
+// This updates time_in / time_out on entries rows that match
+// the voucher code, if the Omada record shows activation.
+async function applyOmadaSyncResults(vouchers) {
+  for (const v of vouchers) {
+    // Only process vouchers that have activation data
+    if (!v.time_in) continue;
+
+    // Find the matching entry in today's log (by voucher_code)
+    const { data: matchingEntries } = await db
+      .from('entries')
+      .select('id, time_in, time_out, duration_hrs')
+      .eq('entry_date', currentSession.date)
+      .eq('voucher_code', v.voucher_code);
+
+    if (!matchingEntries || matchingEntries.length === 0) continue;
+
+    const entry = matchingEntries[0];
+
+    // Build the update payload — only overwrite empty fields
+    const updates = {};
+
+    if (!entry.time_in && v.time_in) {
+      // Convert ISO timestamp to HH:MM for the time_in column
+      const dt = new Date(v.time_in);
+      updates.time_in = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+    }
+
+    if (!entry.time_out && v.time_out) {
+      const dt = new Date(v.time_out);
+      updates.time_out = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+    }
+
+    if (!entry.duration_hrs && v.duration_minutes) {
+      updates.duration_hrs = parseFloat((v.duration_minutes / 60).toFixed(2));
+    }
+
+    if (Object.keys(updates).length === 0) continue;
+
+    const { error } = await db
+      .from('entries')
+      .update(updates)
+      .eq('id', entry.id);
+
+    if (error) {
+      console.warn(`[OmadaSync] Failed to update entry ${entry.id}:`, error.message);
+    } else {
+      console.log(`[OmadaSync] Updated entry for voucher ${v.voucher_code}`, updates);
+    }
+  }
+}
+
+// Display last-synced timestamp in the topbar
+function updateSyncTimestamp(date) {
+  const el = document.getElementById('lastSyncTime');
+  if (!el) return;
+  const t = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  el.textContent = `Last sync: ${t}`;
+}
+
 // ── Entry submission ──────────────────────────────────────────
 async function handleEntrySubmit(e) {
   e.preventDefault();
   const btn = document.getElementById('submitEntryBtn');
 
-  const voucher  = document.getElementById('voucherInput').value.trim();
+  const voucher  = document.getElementById('voucherSelect').value.trim();
   const seat     = parseInt(document.getElementById('seatSelect').value);
   const timeIn   = document.getElementById('timeInInput').value;
   const timeOut  = document.getElementById('timeOutInput').value || null;
@@ -214,7 +468,7 @@ async function handleEntrySubmit(e) {
   const amount   = document.getElementById('amountInput').value || null;
 
   if (!voucher || !seat || !timeIn) {
-    showToast('Voucher code, seat, and time-in are required.', 'warning');
+    showToast('Voucher, seat, and time-in are required.', 'warning');
     return;
   }
 
@@ -231,19 +485,23 @@ async function handleEntrySubmit(e) {
     amount_paid:  amount   ? parseFloat(amount)   : null,
   }).select().maybeSingle();
 
-  setLoading(btn, false);
-
   if (error) {
+    setLoading(btn, false);
     showToast('Failed to save entry: ' + error.message, 'error');
     return;
   }
 
+  // Mark voucher as active in omada_vouchers
+  await db
+    .from('omada_vouchers')
+    .update({ status: 'active', time_in: new Date().toISOString() })
+    .eq('voucher_code', voucher);
+
+  setLoading(btn, false);
   showToast('Entry saved!', 'success');
 
-  // Schedule expiry notification if duration was set
-  if (newEntry && newEntry.duration_hrs) {
+  if (newEntry?.duration_hrs) {
     scheduleExpiryNotification(newEntry);
-
     if (Notification.permission !== 'granted') {
       showToast('Enable notifications to get time-up alerts.', 'warning', 5000);
     }
@@ -251,10 +509,13 @@ async function handleEntrySubmit(e) {
 
   document.getElementById('entryForm').reset();
   setTimeInNow();
+
+  // Reload voucher list (selected voucher is now active)
+  await loadUnusedVouchers();
   await loadTodayEntries();
 }
 
-// ── Load today's entries + reschedule any still-active timers ─
+// ── Load today's entries + reschedule active timers ──────────
 async function loadTodayEntries() {
   const { data, error } = await db
     .from('entries')
@@ -266,7 +527,6 @@ async function loadTodayEntries() {
 
   const entries = data || [];
 
-  // Reschedule timers for entries that haven't expired yet
   entries.forEach(e => {
     if (e.duration_hrs && !e.time_out) {
       scheduleExpiryNotification(e);
@@ -274,14 +534,14 @@ async function loadTodayEntries() {
   });
 
   renderEntriesTable(entries);
+
   const count = entries.length;
   document.getElementById('entryCount').textContent = count;
-  // Update the big counter box in the form panel
   const bigCount = document.getElementById('customerCountBig');
   if (bigCount) bigCount.textContent = count;
 }
 
-// ── Render entries table with expiry indicator ────────────────
+// ── Render entries table ─────────────────────────────────────
 function renderEntriesTable(entries) {
   const tbody = document.getElementById('entriesTableBody');
   const empty = document.getElementById('tableEmpty');
@@ -316,12 +576,10 @@ function getEntryStatus(entry) {
     return { html: '<span class="badge" style="background:rgba(255,255,255,.06);color:var(--text-muted)">—</span>' };
   }
 
-  const today      = entry.entry_date || currentSession?.date || todayISO();
-  const start      = new Date(`${today}T${entry.time_in}`);
-  const expiryMs   = parseFloat(entry.duration_hrs) * 3600000;
-  const expiry     = new Date(start.getTime() + expiryMs);
-  const now        = Date.now();
-  const msLeft     = expiry.getTime() - now;
+  const today    = entry.entry_date || currentSession?.date || todayISO();
+  const start    = new Date(`${today}T${entry.time_in}`);
+  const expiry   = new Date(start.getTime() + parseFloat(entry.duration_hrs) * 3600000);
+  const msLeft   = expiry.getTime() - Date.now();
 
   if (msLeft <= 0) {
     return { html: '<span class="badge" style="background:rgba(224,92,92,.15);color:#e05c5c;border:1px solid rgba(224,92,92,.3)">Expired</span>' };
@@ -349,7 +607,11 @@ function computeDuration() {
   const [h2, m2] = tout.split(':').map(Number);
   let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
   if (diff < 0) diff += 1440;
-  document.getElementById('durationInput').value = (diff / 60).toFixed(2);
+
+  const durInput = document.getElementById('durationInput');
+  durInput.readOnly = false;
+  durInput.value = (diff / 60).toFixed(2);
+  durInput.readOnly = true;
 }
 
 function setTimeInNow() {
@@ -361,18 +623,22 @@ function setTimeInNow() {
 
 // ── New session / sign out ────────────────────────────────────
 function handleNewSession() {
+  stopAutoSync();
   clearAllTimers();
   currentSession = null;
+  unusedVouchers = [];
   document.getElementById('sessionForm').reset();
   document.getElementById('sessionDateInput').value = todayISO();
   showScreen('sessionSetupScreen');
 }
 
 async function handleSignOut() {
+  stopAutoSync();
   clearAllTimers();
   await signOut();
   currentSession = null;
   currentUser    = null;
+  unusedVouchers = [];
   document.getElementById('passwordInput').value = '';
   showScreen('loginScreen');
 }

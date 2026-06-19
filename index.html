@@ -27,18 +27,6 @@
       min-height: 100vh;
     }
 
-    .lock-icon-wrap {
-      width: 64px; height: 64px;
-      background: linear-gradient(135deg, var(--navy-700), var(--blue-400));
-      border-radius: 20px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-      margin-bottom: 1.25rem;
-      box-shadow: 0 6px 24px var(--accent-glow);
-    }
-
     /* ── Session setup ── */
     #sessionSetupScreen.active {
       display: flex;
@@ -66,6 +54,7 @@
 
     #entryScreen.active { display: flex; flex-direction: column; }
 
+    /* ── Topbar ── */
     .topbar {
       background: rgba(10,22,40,.95);
       border-bottom: 1px solid var(--border);
@@ -124,10 +113,57 @@
       color: var(--blue-300);
     }
 
+    /* ── Omada Sync strip ── */
+    .omada-sync-bar {
+      background: rgba(6,13,26,.6);
+      border-bottom: 1px solid rgba(78,158,255,.1);
+      padding: .5rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: .78rem;
+      color: var(--text-muted);
+    }
+
+    .omada-sync-bar .sync-label {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-weight: 500;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      font-size: .7rem;
+      color: var(--text-muted);
+    }
+
+    /* Animated sync status dot */
+    .sync-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: background .4s;
+    }
+
+    .sync-dot.idle    { background: var(--text-muted); }
+    .sync-dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
+    .sync-dot.synced  { background: var(--success); }
+    .sync-dot.error   { background: var(--danger); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .3; }
+    }
+
+    #lastSyncTime {
+      margin-left: auto;
+      font-size: .73rem;
+      color: var(--text-muted);
+    }
+
     /* ── Main content split ── */
     .entry-layout {
       display: grid;
-      grid-template-columns: 400px 1fr;
+      grid-template-columns: 420px 1fr;
       gap: 0;
       flex: 1;
       min-height: 0;
@@ -171,21 +207,74 @@
       gap: .85rem;
     }
 
-    .form-row-3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: .85rem;
+    /* ── Voucher search + select block ── */
+    .voucher-field-wrap {
+      position: relative;
+    }
+
+    .voucher-search-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: .65rem 1rem .65rem 2.5rem;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: .88rem;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .voucher-search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .voucher-search-input::placeholder { color: var(--text-muted); }
+
+    .voucher-search-icon {
+      position: absolute;
+      left: .85rem;
+      top: .75rem;
+      font-size: .85rem;
+      pointer-events: none;
+      color: var(--text-muted);
+    }
+
+    #voucherSelect {
+      border-radius: 0 0 var(--radius) var(--radius);
+      border-top: 1px solid rgba(78,158,255,.08);
+    }
+
+    #voucherSelect:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* Voucher available count pill */
+    .voucher-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: .5rem;
+    }
+
+    .voucher-available-pill {
+      font-size: .72rem;
+      color: var(--success);
+      background: rgba(46,204,142,.08);
+      border: 1px solid rgba(46,204,142,.2);
+      border-radius: 999px;
+      padding: .15rem .6rem;
+      font-weight: 500;
     }
 
     /* ── Time fields ── */
-    input[type="time"].form-control {
-      cursor: pointer;
-    }
+    input[type="time"].form-control { cursor: pointer; }
 
     /* ── Amount field with prefix ── */
-    .input-prefix-wrap {
-      position: relative;
-    }
+    .input-prefix-wrap { position: relative; }
 
     .input-prefix {
       position: absolute;
@@ -197,9 +286,7 @@
       pointer-events: none;
     }
 
-    .input-prefix-wrap .form-control {
-      padding-left: 2rem;
-    }
+    .input-prefix-wrap .form-control { padding-left: 2rem; }
 
     /* ── Duration read-only ── */
     input[readonly].form-control {
@@ -209,9 +296,7 @@
     }
 
     /* ── Submit btn area ── */
-    .submit-area {
-      margin-top: 1.5rem;
-    }
+    .submit-area { margin-top: 1.5rem; }
 
     /* ── Spinner ── */
     .spinner {
@@ -245,20 +330,37 @@
 
     #tableEmpty .empty-icon { font-size: 2rem; margin-bottom: .75rem; opacity: .3; }
 
+    /* ── Divider inside form ── */
+    .form-section-label {
+      font-size: .68rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 1.25rem 0 .75rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .form-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
     /* ── Responsive ── */
-    @media (max-width: 900px) {
-      .entry-layout {
-        grid-template-columns: 1fr;
-      }
-      .entry-panel {
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-      }
+    @media (max-width: 960px) {
+      .entry-layout { grid-template-columns: 1fr; }
+      .entry-panel  { border-right: none; border-bottom: 1px solid var(--border); }
     }
 
     @media (max-width: 520px) {
-      .form-row, .form-row-3 { grid-template-columns: 1fr; }
-      .topbar-meta { gap: .5rem; }
+      .form-row     { grid-template-columns: 1fr; }
+      .topbar-meta  { gap: .5rem; }
+      .omada-sync-bar { flex-wrap: wrap; gap: .5rem; }
+      #lastSyncTime { margin-left: 0; }
     }
   </style>
 </head>
@@ -355,11 +457,12 @@
       </div>
       <div class="topbar-meta">
         <span id="sessionInfo" class="text-secondary"></span>
-        <span class="entry-count-pill"><span id="entryCount">0</span> entries today</span>
+        <span class="entry-count-pill">
+          <span id="entryCount">0</span> entries today
+        </span>
         <button id="newSessionBtn" class="btn btn-outline btn-sm">Change Date</button>
-        <button id="signOutBtn" class="btn btn-outline btn-sm" style="display:none">Sign Out</button>
       </div>
-      <!-- Admin link always visible on the far right -->
+      <!-- Admin link -->
       <a href="admin.html" class="btn btn-sm" style="
         color:var(--gold);
         border:1px solid rgba(201,168,76,.35);
@@ -369,6 +472,25 @@
         margin-left:.5rem;
         font-weight:500;
       ">Admin ↗</a>
+    </div>
+
+    <!-- ── Omada Sync Status Bar ── -->
+    <div class="omada-sync-bar">
+      <span class="sync-label">
+        <span class="sync-dot idle" id="syncStatusDot"></span>
+        Omada Wi-Fi Sync
+      </span>
+      <button
+        id="syncOmadaBtn"
+        class="btn btn-outline btn-sm"
+        style="padding:.3rem .85rem;font-size:.75rem;border-color:rgba(78,158,255,.25)"
+        title="Manually pull latest session data from the Omada Controller"
+      >
+        ↻ Sync Now
+      </button>
+      <span id="lastSyncTime" style="font-size:.73rem;color:var(--text-muted)">
+        Not yet synced
+      </span>
     </div>
 
     <!-- Layout -->
@@ -393,7 +515,9 @@
             font-size:1.3rem;
           ">👥</div>
           <div>
-            <div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600">Customers Today</div>
+            <div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600">
+              Customers Today
+            </div>
             <div style="display:flex;align-items:baseline;gap:.4rem;margin-top:.1rem">
               <span id="customerCountBig" style="font-family:var(--font-display);font-size:2rem;font-weight:600;color:var(--accent);line-height:1">0</span>
               <span style="font-size:.8rem;color:var(--text-muted)">visitors logged</span>
@@ -403,16 +527,46 @@
 
         <form id="entryForm" autocomplete="off">
 
+          <!-- ── Voucher Section ── -->
+          <div class="form-section-label">Wi-Fi Voucher</div>
+
           <div class="form-group">
-            <label class="form-label" for="voucherInput">Voucher Code</label>
-            <input
-              type="text"
-              id="voucherInput"
-              class="form-control"
-              placeholder="e.g. LN-2024-001"
-              required
-            />
+            <div class="voucher-meta-row">
+              <label class="form-label" style="margin-bottom:0" for="voucherSelect">
+                Select Voucher Code
+              </label>
+              <span class="voucher-available-pill">
+                <span id="voucherAvailableCount">0</span> available
+              </span>
+            </div>
+
+            <!-- Searchable voucher dropdown -->
+            <div class="voucher-field-wrap">
+              <span class="voucher-search-icon">🔍</span>
+              <input
+                type="text"
+                id="voucherSearch"
+                class="voucher-search-input"
+                placeholder="Filter by code…"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <select
+                id="voucherSelect"
+                class="form-select"
+                required
+              >
+                <option value="">Loading vouchers…</option>
+              </select>
+            </div>
+
+            <p style="font-size:.73rem;color:var(--text-muted);margin-top:.45rem;line-height:1.5">
+              Only unused vouchers are listed. The dropdown refreshes after each sync.
+            </p>
           </div>
+
+          <!-- ── Seat & Amount Section ── -->
+          <div class="form-section-label">Booking Details</div>
 
           <div class="form-group">
             <label class="form-label" for="seatSelect">Seat / Space</label>
@@ -436,25 +590,38 @@
             </select>
           </div>
 
+          <!-- ── Time Section ── -->
+          <div class="form-section-label">Session Times</div>
+
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="timeInInput">Time In</label>
               <input type="time" id="timeInInput" class="form-control" required />
             </div>
             <div class="form-group">
-              <label class="form-label" for="timeOutInput">Time Out</label>
+              <label class="form-label" for="timeOutInput">
+                Time Out
+                <span style="font-size:.68rem;color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0">
+                  (auto-filled by sync)
+                </span>
+              </label>
               <input type="time" id="timeOutInput" class="form-control" />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="durationInput">Duration (hrs)</label>
+              <label class="form-label" for="durationInput">
+                Duration (hrs)
+                <span style="font-size:.68rem;color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0">
+                  (auto)
+                </span>
+              </label>
               <input
                 type="number"
                 id="durationInput"
                 class="form-control"
-                placeholder="Auto-computed"
+                placeholder="From voucher"
                 step="0.01"
                 min="0"
                 readonly
@@ -483,7 +650,7 @@
           </div>
 
         </form>
-      </div>
+      </div><!-- /entry-panel -->
 
       <!-- RIGHT: Today's log -->
       <div class="log-panel">
@@ -513,7 +680,7 @@
             <p>No entries yet. Add your first visitor above.</p>
           </div>
         </div>
-      </div>
+      </div><!-- /log-panel -->
 
     </div><!-- /entry-layout -->
   </section>
