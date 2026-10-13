@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Las Noches | Co-working in Minna</title>
+<meta name="description" content="Co-working space in Minna, Nigeria. Buy a Wi-Fi voucher online, check live seats, play PS5.">
+<meta name="theme-color" content="#0f172a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230f172a'/%3E%3Cpath d='M12 4a6 6 0 0 0 8 8 8 8 0 1 1-8-8Z' fill='%23a78bfa'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════
+   TOKENS
+   Navy + violet, amber for money, green for "free".
+   Every colour below is a token.
+   ══════════════════════════════════════════════════════════ */
+:root {
+    --hdr-h: 60px;
+    --wrap: 1120px;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+    --f-display: 'Space Grotesk', system-ui, sans-serif;
+    --f-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+    color-scheme: dark;
+    --bg: #0f172a;
+    --bg-soft: #131c31;
+    --surface: #1a2438;
+    --surface-hi: #222f49;
+    --line: rgba(148, 163, 184, .18);
+    --line-hi: rgba(148, 163, 184, .34);
+    --text: #f1f5f9;
+    --muted: #9aa9c0;
+
+    --brand: #8b5cf6;
+    --brand-btn: #7c3aed;
+    --brand-btn-hi: #6d28d9;
+    --brand-text: #b9a5fc;
+    --brand-tint: rgba(139, 92, 246, .14);
+
+    --amber: #fbbf24;
+    --amber-tint: rgba(251, 191, 36, .12);
+    --amber-line: rgba(251, 191, 36, .42);
+    --ok: #34d399;
+    --ok-tint: rgba(52, 211, 153, .12);
+    --ok-line: rgba(52, 211, 153, .4);
+    --bad: #fca5a5;
+    --bad-tint: rgba(239, 68, 68, .12);
+    --bad-line: rgba(239, 68, 68, .34);
+
+    --hdr-bg: rgba(15, 23, 42, .82);
+    --scrim: rgba(6, 8, 18, .78);
+    --hero-a: rgba(139, 92, 246, .34);
+    --hero-b: rgba(14, 165, 233, .12);
+    --wa: #0f7d42;
+}
+
+
+/* ══════════════ BASE ══════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--hdr-h) + 12px);
+    -webkit-text-size-adjust: 100%;
+}
+body {
+    font-family: var(--f-body);
+    font-size: 16px;
+    line-height: 1.55;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    transition: background-color .25s, color .25s;
+}
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; line-height: 1.1; }
+h2 { font-size: clamp(1.65rem, 5.5vw, 2.4rem); letter-spacing: -.025em; }
+a { color: inherit; }
+
+.wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 20px; }
+.ic {
+    width: 1.25em; height: 1.25em; flex: none;
+    fill: none; stroke: currentColor; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round;
+}
+:focus-visible { outline: 2px solid var(--brand-text); outline-offset: 2px; }
+
+.sec { padding: 52px 0; }
+.sec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+@media (min-width: 720px) { .sec { padding: 84px 0; } .sec-head { margin-bottom: 28px; } }
+
+/* ══════════════ BUTTONS ══════════════ */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 48px; padding: 0 22px;
+    border-radius: 12px; border: 1px solid transparent;
+    font: 600 1rem/1 var(--f-body);
+    text-decoration: none; cursor: pointer;
+    transition: background-color .18s, border-color .18s, color .18s, transform .12s;
+    -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(.98); }
+.btn[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
+.btn-primary { background: var(--brand-btn); color: #fff; }
+.btn-primary:hover:not([disabled]) { background: var(--brand-btn-hi); }
+.btn-ghost { background: transparent; color: var(--text); border-color: var(--line-hi); }
+.btn-ghost:hover:not([disabled]) { border-color: var(--brand); color: var(--brand-text); }
+.btn-wa { background: var(--wa); color: #fff; }
+.btn-wa:hover { filter: brightness(1.12); }
+.btn-sm { min-height: 44px; padding: 0 16px; font-size: .92rem; border-radius: 10px; }
+.btn-block { width: 100%; }
+
+.icon-btn {
+    width: 44px; height: 44px; display: grid; place-items: center;
+    border: 0; border-radius: 12px; background: transparent; color: var(--text);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: background-color .18s;
+}
+.icon-btn:hover { background: var(--brand-tint); }
+.icon-btn .ic { width: 22px; height: 22px; }
+
+/* ══════════════ HEADER ══════════════ */
+.hdr {
+    position: fixed; inset: 0 0 auto 0; z-index: 100; height: var(--hdr-h);
+    background: var(--hdr-bg); border-bottom: 1px solid var(--line);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.hdr-in { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.brand {
+    display: flex; align-items: center; gap: 9px;
+    font: 700 1.2rem/1 var(--f-display); letter-spacing: -.01em;
+    color: var(--text); text-decoration: none;
+}
+.hdr-act { display: flex; align-items: center; gap: 6px; }
+
+.menu {
+    position: fixed; top: var(--hdr-h); left: 0; right: 0;
+    display: flex; flex-direction: column;
+    padding: 6px 20px 14px;
+    background: var(--bg); border-bottom: 1px solid var(--line);
+    visibility: hidden; opacity: 0; transform: translateY(-8px);
+    transition: opacity .2s, transform .2s var(--ease), visibility 0s .2s;
+}
+.menu.open { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+.menu a {
+    display: flex; align-items: center; min-height: 52px;
+    font-weight: 500; text-decoration: none; color: var(--text);
+    border-bottom: 1px solid var(--line);
+}
+.menu a:last-child { border-bottom: 0; }
+
+@media (min-width: 980px) {
+    .menu-btn, .only-m { display: none !important; }
+    .menu {
+        position: static; flex-direction: row; gap: 2px; padding: 0;
+        background: none; border: 0;
+        visibility: visible; opacity: 1; transform: none;
+    }
+    .menu a {
+        min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px;
+        font-size: .93rem; color: var(--muted);
+        transition: color .18s, background-color .18s;
+    }
+    .menu a:hover { color: var(--text); background: var(--brand-tint); }
+}
+
+/* ══════════════ HERO — kept short on purpose ══════════════ */
+.hero {
+    position: relative; overflow: hidden;
+    padding: calc(var(--hdr-h) + 26px) 0 28px;
+    background:
+        radial-gradient(90% 130% at 92% -20%, var(--hero-a), transparent 62%),
+        radial-gradient(70% 100% at -10% 120%, var(--hero-b), transparent 60%),
+        var(--bg);
+}
+.hero-field { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.hero-in { position: relative; z-index: 1; }
+.hero h1 {
+    font-size: clamp(2rem, 8.6vw, 3.7rem); line-height: 1.05; letter-spacing: -.03em;
+    margin-bottom: 18px;
+}
+.hero h1 em { font-style: normal; color: var(--brand-text); }
+
+.status { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    min-height: 40px; padding: 0 14px; border-radius: 999px;
+    background: var(--hdr-bg); border: 1px solid var(--line-hi);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    font-size: .86rem; font-weight: 600; color: var(--text); text-decoration: none;
+}
+.pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.pill.is-live i, .pill.is-open i { background: var(--ok); animation: pulse 2.4s ease-in-out infinite; }
+.pill.is-full i { background: var(--amber); }
+.pill.is-shut i { background: var(--muted); }
+.pill.pending { visibility: hidden; }
+a.pill { transition: border-color .18s; }
+a.pill:hover { border-color: var(--brand); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+/* ══════════════════════════════════════════════════════════
+   TICKET — one shape, reused by voucher cards and the code
+   reveal. Notches are real cut-outs (CSS mask), so whatever
+   is behind the ticket shows through. The 1px edge is a second,
+   slightly larger cut-out drawn on top of an edge-coloured base.
+   ══════════════════════════════════════════════════════════ */
+.tk {
+    --n: 8px;                       /* notch radius */
+    --stub: 48px;                   /* stub height, tear line sits above it */
+    --cr: 14px;                     /* corner radius */
+    --edge: var(--line-hi);
+    --tear: var(--line-hi);
+    --stub-bg: var(--brand-tint);
+    --body-bg: transparent;
+    --m-out:
+        radial-gradient(circle var(--n) at 0 calc(100% - var(--stub)), #0000 calc(var(--n) - .5px), #000 var(--n)),
+        radial-gradient(circle var(--n) at 100% calc(100% - var(--stub)), #0000 calc(var(--n) - .5px), #000 var(--n));
+    --m-in:
+        radial-gradient(circle calc(var(--n) + 1px) at -1px calc(100% - var(--stub) + 1px), #0000 calc(var(--n) + .5px), #000 calc(var(--n) + 1px)),
+        radial-gradient(circle calc(var(--n) + 1px) at calc(100% + 1px) calc(100% - var(--stub) + 1px), #0000 calc(var(--n) + .5px), #000 calc(var(--n) + 1px));
+
+    position: relative; display: flex; flex-direction: column;
+    border-radius: var(--cr); background: var(--edge);
+    -webkit-mask-image: var(--m-out); mask-image: var(--m-out);
+}
+.tk::before {
+    content: ""; position: absolute; inset: 1px; z-index: 0;
+    border-radius: calc(var(--cr) - 1px);
+    background:
+        linear-gradient(var(--stub-bg), var(--stub-bg)) bottom / 100% calc(var(--stub) - 1px) no-repeat,
+        linear-gradient(var(--body-bg), var(--body-bg)),
+        var(--surface);
+    -webkit-mask-image: var(--m-in); mask-image: var(--m-in);
+}
+.tk, .tk::before {
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-size: 51% 100%; mask-size: 51% 100%;
+    -webkit-mask-position: left, right; mask-position: left, right;
+}
+.tk > * { position: relative; z-index: 1; }
+.tk-tear {
+    position: absolute !important; z-index: 1;
+    left: calc(var(--n) + 10px); right: calc(var(--n) + 10px);
+    bottom: calc(var(--stub) - 1px); height: 2px;
+    background: repeating-linear-gradient(90deg, var(--tear) 0 6px, transparent 6px 12px);
+}
+.tk-stub {
+    height: var(--stub); display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px;
+}
+
+/* ══════════════ VOUCHERS ══════════════ */
+.sec-buy { padding-top: 24px; }
+.vgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.vcard-wide { grid-column: 1 / -1; }
+@media (min-width: 720px) {
+    .vgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .vcard-wide { grid-column: span 2; }
+}
+
+.vcard {
+    display: block; width: 100%; padding: 0; border: 0; background: none;
+    font: inherit; color: inherit; text-align: left; cursor: pointer;
+    border-radius: 14px;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform .16s var(--ease), filter .2s;
+}
+.vcard:focus-visible { outline: 2px solid var(--brand-text); outline-offset: 3px; }
+.vcard:active:not(.is-out) { transform: scale(.975); }
+.vcard .tk { min-height: 124px; }
+@media (hover: hover) {
+    .vcard:hover:not(.is-out) {
+        transform: translateY(-3px);
+        filter: drop-shadow(0 12px 16px rgba(124, 58, 237, .3));
+    }
+    .vcard:hover:not(.is-out) .tk { --edge: var(--brand); --tear: var(--brand-text); }
+    .vcard:hover:not(.is-out) .v-go { transform: translateX(3px); }
+}
+
+.v-main { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 14px 14px 10px; }
+.v-dur {
+    font: 700 2.6rem/1 var(--f-display); letter-spacing: -.04em;
+    font-variant-numeric: tabular-nums;
+}
+.v-unit {
+    margin-top: 5px; font-size: .75rem; font-weight: 600;
+    letter-spacing: .09em; text-transform: uppercase; color: var(--muted);
+}
+.v-tag {
+    position: absolute; top: 12px; right: 12px;
+    padding: 3px 9px; border-radius: 999px;
+    font-size: .75rem; font-weight: 600; line-height: 1.3;
+}
+.v-tag.is-ok  { color: var(--ok);    background: var(--ok-tint); }
+.v-tag.is-low { color: var(--amber); background: var(--amber-tint); }
+.v-tag.is-out { color: var(--muted); background: var(--surface-hi); }
+.v-price {
+    font: 700 1.22rem/1 var(--f-display); letter-spacing: -.01em;
+    font-variant-numeric: tabular-nums; color: var(--amber);
+}
+.v-go { width: 18px; height: 18px; color: var(--brand-text); transition: transform .2s var(--ease); }
+
+/* confirmed sold out: greyed, but still tappable so it can explain itself */
+.vcard.is-out { cursor: not-allowed; }
+.vcard.is-out .tk { --tear: var(--line); }
+.vcard.is-out .v-dur, .vcard.is-out .v-unit, .vcard.is-out .v-price { opacity: .42; }
+.vcard.is-out .v-price { text-decoration: line-through; color: var(--muted); }
+.vcard.is-out .v-go { display: none; }
+
+.warn {
+    display: flex; gap: 10px; align-items: flex-start;
+    margin-top: 16px; padding: 12px 14px; border-radius: 12px;
+    background: var(--amber-tint); border: 1px solid var(--amber-line);
+    font-size: .92rem; line-height: 1.45;
+}
+.warn .ic { width: 20px; height: 20px; margin-top: 1px; color: var(--amber); }
+.warn b { font-weight: 600; }
+
+/* ══════════════ SEAT BOARD ══════════════ */
+.live {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ok);
+}
+.live i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: pulse 2.4s ease-in-out infinite; }
+
+.board {
+    display: grid; gap: 18px; padding: 16px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+}
+.board-sum { display: flex; align-items: baseline; gap: 10px; }
+.board-sum b { font: 700 3rem/1 var(--f-display); letter-spacing: -.04em; color: var(--ok); font-variant-numeric: tabular-nums; }
+.board-sum b.none { color: var(--amber); }
+.board-sum span { font-weight: 500; color: var(--muted); }
+.board-msg { color: var(--muted); font-weight: 500; }
+
+.seat-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.seat {
+    position: relative; aspect-ratio: 1 / 1.08; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    background: var(--surface-hi); border: 1px solid var(--line);
+    transition: background-color .25s, border-color .25s;
+}
+.seat .sn { font: 700 1.25rem/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.seat .st { font-size: .75rem; font-weight: 600; line-height: 1; color: var(--muted); white-space: nowrap; }
+.seat.free { background: var(--ok-tint); border-color: var(--ok-line); }
+.seat.free .sn, .seat.free .st { color: var(--ok); }
+.seat.soon { background: var(--amber-tint); border-color: var(--amber-line); }
+.seat.soon .sn, .seat.soon .st { color: var(--amber); }
+.seat.soon::after {
+    content: ""; position: absolute; top: 7px; right: 7px;
+    width: 6px; height: 6px; border-radius: 50%; background: var(--amber);
+    animation: pulse 2s ease-in-out infinite;
+}
+.seat.busy { background: transparent; }
+.seat.busy .sn { color: var(--muted); }
+.seat.off { background: transparent; border-style: dashed; opacity: .55; }
+.seat.skel { animation: skel 1.4s ease-in-out infinite; }
+@keyframes skel { 0%, 100% { opacity: .4; } 50% { opacity: .8; } }
+
+@media (min-width: 860px) {
+    .board { grid-template-columns: 240px minmax(0, 560px); justify-content: space-between; align-items: center; padding: 28px 32px; gap: 40px; }
+    .board-sum { flex-direction: column; gap: 6px; }
+    .board-sum b { font-size: 4.6rem; }
+    .seat-grid { gap: 12px; }
+    .seat .sn { font-size: 1.5rem; }
+}
+
+/* ══════════════ ABOUT ══════════════ */
+.about { display: grid; gap: 28px; }
+.lead {
+    margin-top: 14px; max-width: 30ch;
+    font: 500 clamp(1.2rem, 4vw, 1.7rem)/1.38 var(--f-display); letter-spacing: -.012em;
+}
+.stats { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stats li { padding: 14px 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+.stats b { display: block; font: 700 1.05rem/1.2 var(--f-display); letter-spacing: -.02em; white-space: nowrap; }
+.stats span { font-size: .8rem; color: var(--muted); }
+@media (min-width: 480px) { .stats b { font-size: 1.3rem; } }
+@media (min-width: 860px) {
+    .about { grid-template-columns: 1.1fr 1fr; align-items: end; gap: 64px; }
+    .stats b { font-size: 1.7rem; }
+    .stats li { padding: 20px 18px; }
+}
+
+/* ══════════════ SUBSCRIPTIONS ══════════════ */
+.subs { display: grid; gap: 10px; }
+.sub {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 78px; padding: 16px 18px; border-radius: 16px;
+    background: var(--surface); border: 1px solid var(--line);
+    color: var(--text); text-decoration: none;
+    transition: border-color .2s, transform .16s var(--ease);
+    -webkit-tap-highlight-color: transparent;
+}
+.sub:hover { border-color: var(--brand); }
+.sub:active { transform: scale(.985); }
+.sub.pop { border-color: var(--brand); background: linear-gradient(var(--brand-tint), var(--brand-tint)), var(--surface); }
+.sub-name { display: flex; align-items: center; gap: 10px; font: 700 1.4rem/1.1 var(--f-display); letter-spacing: -.02em; }
+.sub-flag {
+    padding: 3px 8px; border-radius: 999px;
+    background: var(--brand-btn); color: #fff;
+    font: 600 .7rem/1.2 var(--f-body); letter-spacing: .02em;
+}
+.sub-term { margin-top: 3px; font-size: .88rem; color: var(--muted); }
+.sub-go { display: inline-flex; align-items: center; gap: 8px; font-size: .92rem; font-weight: 600; color: var(--brand-text); white-space: nowrap; }
+@media (min-width: 720px) {
+    .subs { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .sub { flex-direction: column; align-items: flex-start; justify-content: space-between; min-height: 190px; padding: 22px; }
+}
+
+/* ══════════════ GAMING ══════════════ */
+.games { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-width: 720px; }
+.game {
+    position: relative; isolation: isolate; overflow: hidden;
+    aspect-ratio: 3 / 4; padding: 12px; border-radius: 16px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    border: 1px solid var(--line); color: #fff;
+}
+.game::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--g); }
+.game .game-mark {
+    position: absolute; top: 10px; left: 12px;
+    font: 700 2.6rem/1 var(--f-display); letter-spacing: -.05em;
+    margin: 0; color: transparent; -webkit-text-stroke: 1.5px rgba(255, 255, 255, .5);
+}
+.game b { font: 700 1rem/1.15 var(--f-display); }
+.game span { margin-top: 3px; font-size: .78rem; color: rgba(255, 255, 255, .82); }
+.game:nth-child(1) { --g: linear-gradient(160deg, #7c3aed, #1e1b4b); }
+.game:nth-child(2) { --g: linear-gradient(160deg, #0ea5e9, #0c1a3d); }
+.game:nth-child(3) { --g: linear-gradient(160deg, #d97706, #3b1a08); }
+.games-cta { margin-top: 18px; }
+@media (min-width: 720px) {
+    .game { padding: 18px; }
+    .game .game-mark { font-size: 4rem; top: 14px; left: 18px; }
+    .game b { font-size: 1.25rem; }
+}
+
+/* ══════════════ FACILITIES ══════════════ */
+.facs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.fac { padding: 18px 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+.fac .ic { width: 26px; height: 26px; margin-bottom: 16px; color: var(--brand-text); }
+.fac b { display: block; font: 600 1.05rem/1.2 var(--f-display); }
+.fac span { font-size: .88rem; color: var(--muted); }
+@media (min-width: 720px) {
+    .facs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .fac { padding: 24px 20px; }
+}
+
+/* ══════════════ HOURS ══════════════ */
+.visit { display: grid; gap: 10px; }
+.card { padding: 22px 20px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); }
+.card-k { font-size: .78rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.card-big { margin: 8px 0 16px; font: 700 clamp(1.8rem, 7vw, 2.5rem)/1.05 var(--f-display); letter-spacing: -.03em; }
+.card-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+@media (min-width: 720px) { .visit { grid-template-columns: 1fr 1fr; gap: 16px; } .card { padding: 32px; } }
+
+/* ══════════════ FOOTER ══════════════ */
+.foot { padding: 32px 0 calc(32px + env(safe-area-inset-bottom)); background: var(--bg-soft); border-top: 1px solid var(--line); }
+.foot-in { display: flex; flex-direction: column; gap: 18px; }
+.foot-links { display: flex; flex-wrap: wrap; gap: 4px 22px; }
+.foot-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--muted); text-decoration: none; font-size: .93rem; }
+.foot-links a:hover { color: var(--brand-text); }
+.foot small { color: var(--muted); font-size: .82rem; }
+@media (min-width: 720px) { .foot-in { flex-direction: row; align-items: center; justify-content: space-between; } }
+
+.wa-fab {
+    position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 90;
+    width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%;
+    background: var(--wa); color: #fff; box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .55);
+    transition: transform .18s var(--ease);
+}
+.wa-fab .ic { width: 26px; height: 26px; }
+.wa-fab:hover { transform: scale(1.07); }
+
+.toast {
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 400;
+    max-width: calc(100vw - 32px); padding: 12px 18px; border-radius: 12px;
+    background: var(--text); color: var(--bg); font-size: .92rem; font-weight: 500; text-align: center;
+    box-shadow: 0 14px 30px -10px rgba(0, 0, 0, .6);
+    opacity: 0; visibility: hidden; transform: translate(-50%, 12px);
+    transition: opacity .2s, transform .25s var(--ease), visibility 0s .25s;
+}
+.toast.on { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition-delay: 0s; }
+
+/* scroll reveal — content is visible unless JS opts in */
+.reveal-on .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s var(--ease), transform .5s var(--ease); }
+.reveal-on .reveal.seen { opacity: 1; transform: none; }
+
+/* ══════════════ CHECKOUT SHEET ══════════════ */
+.scrim {
+    position: fixed; inset: 0; z-index: 200; background: var(--scrim);
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    opacity: 0; visibility: hidden; transition: opacity .22s, visibility 0s .22s;
+}
+.scrim.open { opacity: 1; visibility: visible; transition-delay: 0s; }
+
+.sheet {
+    position: fixed; z-index: 210; left: 0; right: 0; bottom: 0;
+    padding: 10px 20px calc(22px + env(safe-area-inset-bottom));
+    max-height: 92vh; max-height: 92dvh; overflow-y: auto; overscroll-behavior: contain;
+    background: var(--surface); border: 1px solid var(--line); border-bottom: 0;
+    border-radius: 24px 24px 0 0;
+    transform: translateY(100%); visibility: hidden;
+    transition: transform .3s var(--ease), visibility 0s .3s;
+}
+.sheet.open { transform: none; visibility: visible; transition-delay: 0s; }
+.sheet:focus { outline: none; }
+.grab { width: 40px; height: 4px; margin: 6px auto 16px; border-radius: 4px; background: var(--line-hi); }
+.sheet h3 { font-size: 1.35rem; letter-spacing: -.02em; margin-bottom: 14px; }
+@media (min-width: 640px) {
+    .sheet {
+        left: 50%; right: auto; top: 50%; bottom: auto; width: 440px; padding: 26px;
+        border: 1px solid var(--line); border-radius: 22px;
+        opacity: 0; transform: translate(-50%, -46%) scale(.97);
+        transition: transform .22s var(--ease), opacity .2s, visibility 0s .22s;
+    }
+    .sheet.open { opacity: 1; transform: translate(-50%, -50%); }
+    .grab { display: none; }
+}
+
+.co-sum {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 14px 16px; margin-bottom: 14px; border-radius: 14px;
+    background: var(--brand-tint); border: 1px solid var(--line-hi);
+}
+.co-sum .l { font: 600 1.15rem/1.2 var(--f-display); }
+.co-sum .r { font: 700 1.4rem/1 var(--f-display); color: var(--amber); font-variant-numeric: tabular-nums; }
+.sheet .warn { margin: 0 0 14px; }
+
+.co-err {
+    margin-bottom: 14px; padding: 11px 14px; border-radius: 10px;
+    background: var(--bad-tint); border: 1px solid var(--bad-line); color: var(--bad);
+    font-size: .9rem;
+}
+.sheet .btn + .btn { margin-top: 10px; }
+
+/* ══════════════ VOUCHER REVEAL — one panel: spinner, then code ══════════════ */
+.rv-scrim {
+    position: fixed; inset: 0; z-index: 300; display: none; place-items: center;
+    padding: 20px; overflow-y: auto;
+    background: rgba(6, 8, 18, .92); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.rv-scrim.open { display: grid; }
+.rv-card {
+    width: 100%; max-width: 420px; padding: 30px 22px; text-align: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 24px;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .6);
+}
+.rv-card:focus { outline: none; }
+.rv-card h3 { font-size: 1.55rem; letter-spacing: -.02em; margin-bottom: 6px; }
+.rv-sub { margin-bottom: 22px; color: var(--muted); font-size: .95rem; }
+.rv-hide { display: none !important; }
+
+.rv-spin {
+    width: 40px; height: 40px; margin: 0 auto 20px; border-radius: 50%;
+    border: 3px solid var(--line-hi); border-top-color: var(--brand);
+    animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.rv-tick {
+    width: 60px; height: 60px; margin: 0 auto 16px; display: grid; place-items: center; border-radius: 50%;
+    background: var(--ok-tint); border: 1px solid var(--ok-line); color: var(--ok);
+}
+.rv-tick .ic { width: 28px; height: 28px; }
+.rv-tick.warn { background: var(--amber-tint); border-color: var(--amber-line); color: var(--amber); }
+.rv-tick.bad { background: var(--bad-tint); border-color: var(--bad-line); color: var(--bad); }
+
+.rv-voucher { --stub: 50px; --n: 9px; --cr: 16px; --body-bg: var(--brand-tint); --stub-bg: var(--brand-tint); margin-bottom: 14px; }
+.rv-main { padding: 22px 18px 18px; }
+.rv-cap { margin-bottom: 8px; font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.rv-code {
+    font: 700 2.3rem/1.1 ui-monospace, 'Courier New', monospace; letter-spacing: .12em;
+    color: var(--amber); word-break: break-all;
+}
+.rv-voucher .tk-stub { justify-content: center; font-size: .9rem; font-weight: 500; color: var(--muted); }
+
+.rv-steps { margin: 18px 0 0; padding: 14px 16px; text-align: left; border-radius: 14px; background: var(--bg); border: 1px solid var(--line); }
+.rv-steps ol { margin-left: 18px; font-size: .92rem; }
+.rv-steps li { margin-bottom: 4px; }
+.rv-steps li:last-child { margin-bottom: 0; }
+.rv-warn {
+    display: flex; gap: 10px; margin-top: 14px; padding: 12px 14px; border-radius: 12px; text-align: left;
+    background: var(--amber-tint); border: 1px solid var(--amber-line); font-size: .9rem; line-height: 1.45;
+}
+.rv-warn .ic { width: 20px; height: 20px; margin-top: 1px; color: var(--amber); }
+.rv-warn b { font-weight: 600; }
+.rv-ref { margin-top: 16px; font: .72rem ui-monospace, 'Courier New', monospace; color: var(--muted); word-break: break-all; }
+.rv-card .btn + .btn, .rv-card .btn-block + .rv-steps { margin-top: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+    }
+    .rv-spin { animation: spin 1.6s linear infinite !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- Icon sprite (Lucide-style strokes) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></symbol>
+    <symbol id="i-seat" viewBox="0 0 24 24"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0zM5 18v2M19 18v2"/></symbol>
+    <symbol id="i-desk" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+</defs>
+</svg>
+
+<!-- ═══ HEADER ═══ -->
+<header class="hdr">
+    <div class="wrap hdr-in">
+        <a class="brand" href="#top" aria-label="Las Noches, top of page">Las Noches</a>
+
+        <nav class="menu" id="menu" aria-label="Sections">
+            <a class="only-m" href="#buy">Vouchers</a>
+            <a href="#seats">Seats</a>
+            <a href="#about">About</a>
+            <a href="#plans">Subscriptions</a>
+            <a href="#gaming">Gaming</a>
+            <a href="#facilities">Facilities</a>
+            <a href="#hours">Hours</a>
+        </nav>
+
+        <div class="hdr-act">
+            <a class="btn btn-primary btn-sm" href="#buy">Buy</a>
+            <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+                <svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg>
+            </button>
+        </div>
+    </div>
+</header>
+
+<main>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero" id="top">
+    <canvas class="hero-field" id="field" aria-hidden="true"></canvas>
+    <div class="wrap hero-in">
+        <h1>Work comfortably.<br><em>Game responsibly.</em></h1>
+        <div class="status">
+            <span class="pill" id="openPill"><i></i><span class="open-txt">Daily 8am &ndash; 9pm</span></span>
+            <a class="pill pending" id="heroSeats" href="#seats"><i></i><span id="heroSeatsTxt">Seats</span></a>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ VOUCHERS ═══ -->
+<section class="sec sec-buy" id="buy">
+    <div class="wrap">
+        <div class="sec-head"><h2>Buy a Voucher</h2></div>
+        <div class="vgrid" id="voucherGrid"></div>
+        <p class="warn">
+            <svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>
+            <span><b>Time starts the moment payment goes through.</b></span>
+        </p>
+    </div>
+</section>
+
+<!-- ═══ LIVE SEATS ═══ -->
+<section class="sec" id="seats">
+    <div class="wrap">
+        <div class="sec-head">
+            <h2>Live Seats</h2>
+            <span class="live"><i></i>Live</span>
+        </div>
+        <div class="board reveal">
+            <div class="board-sum" id="boardSum">
+                <b id="seatsFree">&ndash;</b><span id="seatsOf">free</span>
+            </div>
+            <p class="board-msg" id="boardMsg" hidden>Board offline</p>
+            <div class="seat-grid" id="seatGrid" role="list" aria-label="Seats"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ ABOUT ═══ -->
+<section class="sec" id="about">
+    <div class="wrap about">
+        <div class="reveal">
+            <h2>About Las Noches</h2>
+            <p class="lead">A calm, focused workspace in Minna. Fast Wi-Fi, constant power, and a PS5 lounge for when the work is done.</p>
+        </div>
+        <ul class="stats reveal">
+            <li><b>15</b><span>Seats</span></li>
+            <li><b>8am&ndash;9pm</b><span>Every day</span></li>
+            <li><b>PS5</b><span>Lounge</span></li>
+        </ul>
+    </div>
+</section>
+
+<!-- ═══ SUBSCRIPTIONS ═══ -->
+<section class="sec" id="plans">
+    <div class="wrap">
+        <div class="sec-head"><h2>Subscriptions</h2></div>
+        <div class="subs">
+            <a class="sub wa-link reveal" data-msg="Hi Las Noches, I would like to ask about the weekly plan." href="#" target="_blank" rel="noopener" aria-label="Weekly plan, ask on WhatsApp">
+                <div><div class="sub-name">Weekly</div><div class="sub-term">1 week</div></div>
+                <span class="sub-go"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp</span>
+            </a>
+            <a class="sub pop wa-link reveal" data-msg="Hi Las Noches, I would like to ask about the monthly plan." href="#" target="_blank" rel="noopener" aria-label="Monthly plan, most popular, ask on WhatsApp">
+                <div><div class="sub-name">Monthly <span class="sub-flag">Popular</span></div><div class="sub-term">1 month</div></div>
+                <span class="sub-go"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp</span>
+            </a>
+            <a class="sub wa-link reveal" data-msg="Hi Las Noches, I would like to ask about the yearly plan." href="#" target="_blank" rel="noopener" aria-label="Yearly plan, ask on WhatsApp">
+                <div><div class="sub-name">Yearly</div><div class="sub-term">1 year</div></div>
+                <span class="sub-go"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ GAMING ═══ -->
+<section class="sec" id="gaming">
+    <div class="wrap">
+        <div class="sec-head"><h2>PS5 Lounge</h2></div>
+        <div class="games reveal">
+            <div class="game"><span class="game-mark" aria-hidden="true">MK</span><b>Mortal Kombat</b><span>Fighting</span></div>
+            <div class="game"><span class="game-mark" aria-hidden="true">FC</span><b>FC 26</b><span>Football</span></div>
+            <div class="game"><span class="game-mark" aria-hidden="true">NBA</span><b>NBA</b><span>Basketball</span></div>
+        </div>
+        <div class="games-cta">
+            <a class="btn btn-ghost wa-link" data-msg="Hi Las Noches, I would like to ask about the PS5 lounge." href="#" target="_blank" rel="noopener">
+                <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>Ask on WhatsApp
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ FACILITIES ═══ -->
+<section class="sec" id="facilities">
+    <div class="wrap">
+        <div class="sec-head"><h2>Facilities</h2></div>
+        <div class="facs">
+            <div class="fac reveal"><svg class="ic" aria-hidden="true"><use href="#i-zap"/></svg><b>Power</b><span>Backup supply</span></div>
+            <div class="fac reveal"><svg class="ic" aria-hidden="true"><use href="#i-wifi"/></svg><b>Wi-Fi</b><span>High-speed</span></div>
+            <div class="fac reveal"><svg class="ic" aria-hidden="true"><use href="#i-seat"/></svg><b>Seating</b><span>Ergonomic</span></div>
+            <div class="fac reveal"><svg class="ic" aria-hidden="true"><use href="#i-desk"/></svg><b>Desks</b><span>Spacious</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ HOURS ═══ -->
+<section class="sec" id="hours">
+    <div class="wrap">
+        <div class="sec-head"><h2>Hours &amp; Location</h2></div>
+        <div class="visit">
+            <div class="card reveal">
+                <div class="card-k">Every day</div>
+                <div class="card-big">8:00am &ndash; 9:00pm</div>
+                <span class="pill" id="openNow"><i></i><span class="open-txt">Daily 8am &ndash; 9pm</span></span>
+            </div>
+            <div class="card reveal">
+                <div class="card-k">Find us</div>
+                <div class="card-big">Minna, Niger State</div>
+                <div class="card-actions">
+                    <a class="btn btn-primary" href="https://www.google.com/maps/search/?api=1&amp;query=Las+Noches+Minna+Niger+State+Nigeria" target="_blank" rel="noopener">
+                        <svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>Directions
+                    </a>
+                    <a class="btn btn-wa wa-link" data-msg="" href="#" target="_blank" rel="noopener">
+                        <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<footer class="foot">
+    <div class="wrap foot-in">
+        <nav class="foot-links" aria-label="Footer">
+            <a href="#buy">Vouchers</a>
+            <a href="#seats">Seats</a>
+            <a href="#plans">Subscriptions</a>
+            <a href="#gaming">Gaming</a>
+            <a href="#hours">Hours</a>
+            <a class="wa-link" data-msg="" href="#" target="_blank" rel="noopener">WhatsApp</a>
+        </nav>
+        <small>&copy; <span id="yr">2026</span> Las Noches &middot; Minna, Nigeria</small>
+    </div>
+</footer>
+
+<a class="wa-fab wa-link" data-msg="Hi Las Noches, I'm interested in your workspace. Can you tell me more about availability?" href="#" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>
+</a>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ═══ CHECKOUT ═══ -->
+<div class="scrim" id="coScrim"></div>
+<form class="sheet" id="coSheet" role="dialog" aria-modal="true" aria-labelledby="coLabel" novalidate>
+    <div class="grab"></div>
+    <div class="co-sum">
+        <span class="l" id="coLabel">&ndash;</span>
+        <span class="r" id="coPrice">&ndash;</span>
+    </div>
+
+    <p class="warn">
+        <svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>
+        <span><b>Time starts the moment payment goes through</b>, not when you arrive.</span>
+    </p>
+
+    <div class="co-err" id="coErr" role="alert" hidden></div>
+
+    <button class="btn btn-primary btn-block" id="coPay" type="submit">Pay</button>
+    <button class="btn btn-ghost btn-block" id="coCancel" type="button">Cancel</button>
+
+</form>
+
+<!-- ═══ VOUCHER REVEAL ═══ -->
+<div class="rv-scrim" id="rvScrim" role="dialog" aria-modal="true" aria-label="Your voucher">
+    <div class="rv-card" id="rvCard" tabindex="-1">
+
+        <div id="rvWait">
+            <div class="rv-spin"></div>
+            <h3>Confirming payment</h3>
+            <p class="rv-sub">Keep this page open.</p>
+        </div>
+
+        <div id="rvOk" class="rv-hide">
+            <div class="rv-tick"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></div>
+            <h3>Your voucher</h3>
+            <p class="rv-sub" id="rvSub">&nbsp;</p>
+
+            <div class="tk rv-voucher">
+                <div class="rv-main">
+                    <div class="rv-cap">Wi-Fi code</div>
+                    <div class="rv-code" id="rvCode">&ndash;</div>
+                </div>
+                <span class="tk-tear"></span>
+                <div class="tk-stub" id="rvMeta"></div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="rvCopy" type="button">
+                <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>Copy code</span>
+            </button>
+
+            <div class="rv-steps">
+                <ol>
+                    <li>Join the <strong>Las Noches</strong> Wi-Fi</li>
+                    <li>Enter the code on the login page</li>
+                </ol>
+            </div>
+
+            <div class="rv-warn">
+                <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+                <span><b>Your time has started.</b> Screenshot this; the code isn't shown again.</span>
+            </div>
+
+            <button class="btn btn-ghost btn-block" id="rvDone" type="button" style="margin-top:14px">Done</button>
+        </div>
+
+        <div id="rvNone" class="rv-hide">
+            <div class="rv-tick warn"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg></div>
+            <h3>Payment received</h3>
+            <p class="rv-sub">That voucher length just ran out. Message us for a code or a refund.</p>
+            <a class="btn btn-wa btn-block rv-wa" href="#" target="_blank" rel="noopener">
+                <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>Message us
+            </a>
+            <button class="btn btn-ghost btn-block rv-close" type="button">Close</button>
+            <div class="rv-ref" id="rvRefA"></div>
+        </div>
+
+        <div id="rvBad" class="rv-hide">
+            <div class="rv-tick bad"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg></div>
+            <h3 id="rvBadTitle">Something went wrong</h3>
+            <p class="rv-sub" id="rvBadMsg">We couldn't confirm that payment.</p>
+            <a class="btn btn-wa btn-block rv-wa" href="#" target="_blank" rel="noopener">
+                <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>Message us
+            </a>
+            <button class="btn btn-ghost btn-block rv-close" type="button">Close</button>
+            <div class="rv-ref" id="rvRefB"></div>
+        </div>
+
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   LAS NOCHES — public page
+
+   Order matters here. Everything the customer needs to SEE
+   (prices, checkout, the Paystack return panel) runs first and
+   depends on nothing external. The Supabase client is loaded
+   afterwards, asynchronously, and only ever adds to the page:
+   live stock, live seats, price overrides. If it is slow,
+   blocked or down, the page still works.
+
+   Prices drawn here are for DISPLAY. create-payment reads the
+   real amount from the database, so editing this file cannot
+   change what anybody pays.
+   ══════════════════════════════════════════════════════════ */
+(function () {
+    'use strict';
+
+    var $ = function (id) { return document.getElementById(id); };
+    var CFG = (typeof CONFIG !== 'undefined') ? CONFIG : {};
+    var WA = 'https://wa.me/' + (CFG.WHATSAPP || '2348000000000');
+    var FN = CFG.SUPABASE_URL ? CFG.SUPABASE_URL + '/functions/v1' : '';
+    var ANON = CFG.SUPABASE_ANON_KEY || '';
+
+    var TOTAL_SEATS = 15;
+    var SOON_MINS = 15;          // "ending soon" threshold
+    var LOW_STOCK = 5;           // amber badge at or below this
+    var SOLD_OUT_HOLD = 3 * 60 * 1000;
+
+    /* ── fixed business data ── */
+    var DEFAULT_PLANS = [
+        { duration_hrs: 0.5, label: '30 minutes', amount_ngn: 200 },
+        { duration_hrs: 1,   label: '1 hour',     amount_ngn: 300 },
+        { duration_hrs: 2,   label: '2 hours',    amount_ngn: 600 },
+        { duration_hrs: 3,   label: '3 hours',    amount_ngn: 900 },
+        { duration_hrs: 4,   label: '4 hours',    amount_ngn: 1200 },
+        { duration_hrs: 6,   label: '6 hours',    amount_ngn: 1500 },
+        { duration_hrs: 12,  label: '12 hours',   amount_ngn: 2500 }
+    ];
+
+    var plans = DEFAULT_PLANS.slice();
+    var stock = null;            // null = unknown. Becomes an object only once the vouchers table answers.
+    var soldOutUntil = {};       // plan key -> timestamp; create-payment said sold_out
+    var cards = {};              // plan key -> { el, tag }
+    var picked = null, pickedKey = '', lastFocus = null;
+
+    function naira(n) { return '₦' + Number(n).toLocaleString('en-NG'); }
+    function planKey(p) { return String(Number(p.duration_hrs)); }
+
+    function durParts(h) {
+        h = Number(h);
+        if (h < 1) return { n: Math.round(h * 60), u: 'min' };
+        return { n: h, u: h === 1 ? 'hour' : 'hours' };
+    }
+    function durText(h) {
+        h = Number(h);
+        if (h < 1) return Math.round(h * 60) + ' minutes';
+        return h + (h === 1 ? ' hour' : ' hours');
+    }
+
+    var toastTimer;
+    function toast(msg) {
+        var t = $('toast');
+        t.textContent = msg;
+        t.classList.add('on');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { t.classList.remove('on'); }, 3400);
+    }
+
+    function focusables(box) {
+        return Array.prototype.filter.call(
+            box.querySelectorAll('a[href], button:not([disabled]), input:not([disabled])'),
+            function (el) { return el.offsetParent !== null; });
+    }
+    function trapTab(e, box) {
+        var f = focusables(box);
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1], a = document.activeElement;
+        if (e.shiftKey && (a === first || a === box)) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+    }
+
+    /* ══════════════════════════════════════════
+       VOUCHER GRID — drawn immediately from DEFAULT_PLANS
+       ══════════════════════════════════════════ */
+
+    function stockFor(key) {
+        if (soldOutUntil[key] && soldOutUntil[key] > Date.now()) return 0;
+        if (!stock) return null;                         // unknown: no badge, never disabled
+        return Object.prototype.hasOwnProperty.call(stock, key) ? stock[key] : 0;
+    }
+
+    function buildGrid() {
+        var g = $('voucherGrid');
+        if (!g) return;
+        g.textContent = '';
+        cards = {};
+
+        plans.forEach(function (p, i) {
+            var key = planKey(p), d = durParts(p.duration_hrs);
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'vcard' + (plans.length % 2 === 1 && i === plans.length - 1 ? ' vcard-wide' : '');
+            b.innerHTML =
+                '<span class="tk">' +
+                    '<span class="v-main">' +
+                        '<span class="v-tag" hidden></span>' +
+                        '<span class="v-dur">' + d.n + '</span>' +
+                        '<span class="v-unit">' + d.u + '</span>' +
+                    '</span>' +
+                    '<span class="tk-tear"></span>' +
+                    '<span class="tk-stub">' +
+                        '<span class="v-price">' + naira(p.amount_ngn) + '</span>' +
+                        '<svg class="ic v-go" aria-hidden="true"><use href="#i-arrow"/></svg>' +
+                    '</span>' +
+                '</span>';
+            b.addEventListener('click', function () {
+                if (stockFor(key) === 0) { toast(p.label + ' is sold out right now.'); return; }
+                openCheckout(p, key, b);
+            });
+            cards[key] = { el: b, tag: b.querySelector('.v-tag') };
+            g.appendChild(b);
+        });
+        paintStock();
+    }
+
+    /* Badges and the greyed state follow stock. Unknown stock draws nothing extra. */
+    function paintStock() {
+        plans.forEach(function (p) {
+            var key = planKey(p), c = cards[key];
+            if (!c) return;
+            var left = stockFor(key), out = left === 0;
+
+            c.el.classList.toggle('is-out', out);
+            if (out) c.el.setAttribute('aria-disabled', 'true'); else c.el.removeAttribute('aria-disabled');
+
+            if (left === null) {
+                c.tag.hidden = true;
+            } else {
+                c.tag.hidden = false;
+                c.tag.textContent = out ? 'Sold out' : left + ' left';
+                c.tag.className = 'v-tag ' + (out ? 'is-out' : left <= LOW_STOCK ? 'is-low' : 'is-ok');
+            }
+            c.el.setAttribute('aria-label',
+                p.label + ', ' + naira(p.amount_ngn) + (out ? ', sold out' : left !== null ? ', ' + left + ' left' : ''));
+        });
+    }
+
+    /* The database may correct prices or labels once it answers. */
+    function applyPricing(rows) {
+        var next = [];
+        rows.forEach(function (r) {
+            var p = { duration_hrs: Number(r.duration_hrs), label: String(r.label || ''), amount_ngn: Number(r.amount_ngn) };
+            if (isFinite(p.duration_hrs) && p.duration_hrs > 0 && isFinite(p.amount_ngn) && p.amount_ngn > 0 && p.label) next.push(p);
+        });
+        if (!next.length) return;                          // empty answer: keep the constant
+        if (JSON.stringify(next) === JSON.stringify(plans)) return;
+        plans = next;
+        buildGrid();
+    }
+
+    buildGrid();
+
+    /* ══════════════════════════════════════════
+       CHECKOUT
+       ══════════════════════════════════════════ */
+
+    function payLabel() { return picked ? 'Pay ' + naira(picked.amount_ngn) : 'Pay'; }
+    function showErr(msg) { var e = $('coErr'); e.textContent = msg; e.hidden = false; }
+    function hideErr() { $('coErr').hidden = true; }
+    function sheetOpen() { return $('coSheet').classList.contains('open'); }
+
+    function openCheckout(plan, key, trigger) {
+        picked = plan; pickedKey = key; lastFocus = trigger || document.activeElement;
+        $('coLabel').textContent = plan.label;
+        $('coPrice').textContent = naira(plan.amount_ngn);
+        $('coPay').textContent = payLabel();
+        $('coPay').disabled = false;
+        $('coCancel').textContent = 'Cancel';
+        hideErr();
+        $('coScrim').classList.add('open');
+        $('coSheet').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        setTimeout(function () { $('coSheet').focus(); }, 60);
+    }
+
+    function closeCheckout() {
+        if (!sheetOpen()) return;
+        $('coScrim').classList.remove('open');
+        $('coSheet').classList.remove('open');
+        document.body.style.overflow = '';
+        if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    $('coSheet').setAttribute('tabindex', '-1');
+    $('coScrim').addEventListener('click', closeCheckout);
+    $('coCancel').addEventListener('click', closeCheckout);
+
+    $('coSheet').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var btn = $('coPay');
+
+        if (!FN) { showErr('Payments are unavailable right now. Message us on WhatsApp.'); return; }
+        hideErr();
+
+        btn.disabled = true;
+        btn.textContent = 'Opening Paystack…';
+
+        fetch(FN + '/create-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + ANON
+            },
+            body: JSON.stringify({ duration_hrs: picked.duration_hrs })
+        }).then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; });
+        }).then(function (res) {
+            if (!res.ok || !res.d.authorization_url) {
+                showErr(res.d.error || 'Could not start the payment. Try again.');
+
+                if (res.d.sold_out) {
+                    // The server checked stock and there is none. Nothing to pay for.
+                    soldOutUntil[pickedKey] = Date.now() + SOLD_OUT_HOLD;
+                    paintStock();
+                    btn.textContent = 'Sold out';
+                    $('coCancel').textContent = 'Back';
+                    if (window.lnRefreshStock) window.lnRefreshStock();
+                    return;
+                }
+                btn.disabled = false;
+                btn.textContent = payLabel();
+                return;
+            }
+            window.location.href = res.d.authorization_url;
+        }).catch(function () {
+            showErr('Network problem. Check your connection and try again.');
+            btn.disabled = false;
+            btn.textContent = payLabel();
+        });
+    });
+
+    /* ══════════════════════════════════════════
+       VOUCHER REVEAL
+       Paystack redirects to home.html?reference=xxx.
+       One panel: spinner, then the code. No second popup.
+       ══════════════════════════════════════════ */
+
+    var rvPanels = ['rvWait', 'rvOk', 'rvNone', 'rvBad'];
+
+    function rvShow(which) {
+        rvPanels.forEach(function (v) { $(v).classList.toggle('rv-hide', v !== which); });
+        $('rvScrim').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        $('rvCard').focus();
+    }
+
+    function rvClose() {
+        $('rvScrim').classList.remove('open');
+        document.body.style.overflow = '';
+        // drop the reference so a refresh doesn't replay the panel
+        if (history.replaceState) history.replaceState({}, '', location.pathname + '#buy');
+        if (window.lnRefreshStock) window.lnRefreshStock();
+        if (window.lnRefreshSeats) window.lnRefreshSeats();
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll('.rv-close'), function (b) { b.addEventListener('click', rvClose); });
+    $('rvDone').addEventListener('click', rvClose);
+
+    function setRvWa(text) {
+        Array.prototype.forEach.call(document.querySelectorAll('.rv-wa'), function (a) {
+            a.href = WA + '?text=' + encodeURIComponent(text);
+        });
+    }
+
+    function rvFail(title, msg, ref) {
+        $('rvBadTitle').textContent = title;
+        $('rvBadMsg').textContent = msg;
+        $('rvRefB').textContent = ref ? 'Reference: ' + ref : '';
+        setRvWa('Hi Las Noches, I paid but did not get my code. Reference: ' + (ref || 'unknown'));
+        rvShow('rvBad');
+    }
+
+    function rvSucceed(d) {
+        var len = durText(d.duration_hrs);
+        $('rvCode').textContent = d.voucher_code;
+        $('rvSub').textContent = len + ' · started';
+
+        if (d.expires_at) {
+            // Lagos is UTC+1 all year, so a fixed offset is always right
+            var until = new Date(new Date(d.expires_at).getTime() + 3600000).toISOString().slice(11, 16);
+            $('rvMeta').textContent = 'Runs until ' + until;
+        } else {
+            $('rvMeta').textContent = len;
+        }
+        rvShow('rvOk');
+
+        var copyBtn = $('rvCopy'), copyTxt = copyBtn.querySelector('span');
+        copyBtn.onclick = function () {
+            function selectInstead() {
+                var r = document.createRange();
+                r.selectNodeContents($('rvCode'));
+                var sel = window.getSelection();
+                sel.removeAllRanges(); sel.addRange(r);
+                copyTxt.textContent = 'Selected. Long-press to copy';
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(d.voucher_code).then(function () {
+                    copyTxt.textContent = 'Copied';
+                }).catch(selectInstead);
+            } else {
+                selectInstead();
+            }
+            setTimeout(function () { copyTxt.textContent = 'Copy code'; }, 2400);
+        };
+    }
+
+    function pollOrder(reference, tries) {
+        tries = tries || 1;
+
+        fetch(FN + '/order-status?reference=' + encodeURIComponent(reference), {
+            headers: { Authorization: 'Bearer ' + ANON }
+        }).then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; });
+        }).then(function (res) {
+            var d = res.d;
+
+            if (!res.ok) {
+                if (tries < 12) return setTimeout(function () { pollOrder(reference, tries + 1); }, 2500);
+                return rvFail('We could not check that payment',
+                    'Message us with the reference below and we will sort it out.', reference);
+            }
+
+            if (d.status === 'paid' && d.voucher_code) return rvSucceed(d);
+
+            if (d.status === 'sold_out') {
+                $('rvRefA').textContent = 'Reference: ' + reference;
+                setRvWa('Hi Las Noches, I paid but the voucher was out of stock. Reference: ' + reference);
+                return rvShow('rvNone');
+            }
+
+            if (d.status === 'failed') {
+                return rvFail('Payment did not go through', 'Nothing was charged. You can try again.', reference);
+            }
+
+            // still pending; webhooks can lag a few seconds
+            if (tries < 20) return setTimeout(function () { pollOrder(reference, tries + 1); }, 2500);
+
+            rvFail('Still waiting on your bank',
+                'Your payment has not confirmed yet. Send us the reference below and we will release your code.', reference);
+        }).catch(function () {
+            if (tries < 12) return setTimeout(function () { pollOrder(reference, tries + 1); }, 3000);
+            rvFail('Connection problem', 'Check your internet, then reload this page.', reference);
+        });
+    }
+
+    (function () {
+        var q = new URLSearchParams(location.search);
+        var ref = q.get('reference') || q.get('trxref');
+        if (!ref) return;
+        rvShow('rvWait');
+        if (!FN) return rvFail('Could not check that payment', 'Message us with the reference below.', ref);
+        pollOrder(ref);
+    })();
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeCheckout(); closeMenu(); }
+        if (e.key === 'Tab') {
+            if (sheetOpen()) trapTab(e, $('coSheet'));
+            else if ($('rvScrim').classList.contains('open')) trapTab(e, $('rvCard'));
+        }
+    });
+
+    /* ══════════════════════════════════════════
+       PAGE CHROME: WhatsApp links, menu, reveal, open status
+       ══════════════════════════════════════════ */
+
+    Array.prototype.forEach.call(document.querySelectorAll('.wa-link'), function (a) {
+        var m = a.getAttribute('data-msg');
+        a.href = WA + (m ? '?text=' + encodeURIComponent(m) : '');
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.rv-wa'), function (a) { a.href = WA; });
+    if ($('yr')) $('yr').textContent = new Date().getFullYear();
+
+    var root = document.documentElement;
+
+    var menu = $('menu'), menuBtn = $('menuBtn');
+    function closeMenu() {
+        menu.classList.remove('open');
+        menuBtn.setAttribute('aria-expanded', 'false');
+        menuBtn.setAttribute('aria-label', 'Open menu');
+        menuBtn.firstElementChild.firstElementChild.setAttribute('href', '#i-menu');
+    }
+    menuBtn.addEventListener('click', function () {
+        var open = !menu.classList.contains('open');
+        if (!open) return closeMenu();
+        menu.classList.add('open');
+        menuBtn.setAttribute('aria-expanded', 'true');
+        menuBtn.setAttribute('aria-label', 'Close menu');
+        menuBtn.firstElementChild.firstElementChild.setAttribute('href', '#i-x');
+    });
+    menu.addEventListener('click', function (e) { if (e.target.tagName === 'A') closeMenu(); });
+    document.addEventListener('click', function (e) {
+        if (menu.classList.contains('open') && !menu.contains(e.target) && !menuBtn.contains(e.target)) closeMenu();
+    });
+
+    /* Content stays visible unless the browser can observe it AND motion is welcome. */
+    (function () {
+        if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        var els = document.querySelectorAll('.reveal');
+        root.classList.add('reveal-on');
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+                if (en.isIntersecting) { en.target.classList.add('seen'); io.unobserve(en.target); }
+            });
+        }, { rootMargin: '0px 0px -6% 0px', threshold: 0.08 });
+        Array.prototype.forEach.call(els, function (el) { io.observe(el); });
+    })();
+
+    /* Open / closed, in Lagos time (UTC+1, no DST). */
+    function paintOpen() {
+        var h = new Date(Date.now() + 3600000).getUTCHours();
+        var open = h >= 8 && h < 21;
+        var txt = open ? 'Open until 9pm' : 'Closed · opens 8am';
+        ['openPill', 'openNow'].forEach(function (id) {
+            var el = $(id);
+            if (!el) return;
+            el.classList.toggle('is-open', open);
+            el.classList.toggle('is-shut', !open);
+            el.querySelector('.open-txt').textContent = txt;
+        });
+    }
+    paintOpen();
+    setInterval(paintOpen, 60000);
+
+    /* ══════════════════════════════════════════
+       LIVE DATA — Supabase, loaded last and asynchronously
+       ══════════════════════════════════════════ */
+
+    var sb = null, seatRows = null;
+
+    function debounce(fn, ms) { var t; return function () { clearTimeout(t); t = setTimeout(fn, ms); }; }
+    function run(query, ok) {
+        return Promise.resolve(query).then(ok).catch(function (e) { console.warn('supabase read failed', e); });
+    }
+
+    function loadPricing() {
+        return run(sb.from('pricing').select('*').eq('is_active', true).order('sort_order'), function (res) {
+            if (!res.error && Array.isArray(res.data)) applyPricing(res.data);
+        });
+    }
+
+    /* Only a successful answer from the vouchers table counts as "known". */
+    function loadStock() {
+        return run(sb.from('vouchers').select('duration_hrs').eq('status', 'unused'), function (res) {
+            if (res.error || !Array.isArray(res.data)) return;
+            var next = {};
+            res.data.forEach(function (v) {
+                var k = String(Number(v.duration_hrs));
+                next[k] = (next[k] || 0) + 1;
+            });
+            stock = next;
+            paintStock();
+        });
+    }
+
+    /* seat board: free / ending soon / occupied */
+    function minsLeft(iso) { return Math.max(1, Math.ceil((new Date(iso) - Date.now()) / 60000)); }
+
+    function seatSkeleton() {
+        var g = $('seatGrid');
+        for (var i = 0; i < TOTAL_SEATS; i++) {
+            var d = document.createElement('div');
+            d.className = 'seat skel';
+            d.innerHTML = '<span class="sn">&nbsp;</span>';
+            g.appendChild(d);
+        }
+    }
+
+    function boardOffline() {
+        $('seatGrid').textContent = '';
+        $('boardSum').hidden = true;
+        $('boardMsg').hidden = false;
+        $('heroSeats').classList.add('pending');
+    }
+
+    function drawSeats() {
+        var g = $('seatGrid');
+        if (!seatRows || !seatRows.length) return;
+        var frag = document.createDocumentFragment(), free = 0, total = 0;
+
+        seatRows.forEach(function (s) {
+            var d = document.createElement('div');
+            var state, label, aria;
+            d.setAttribute('role', 'listitem');
+
+            if (!s.is_active) {
+                state = 'off'; label = 'Closed'; aria = 'closed';
+            } else {
+                total++;
+                if (s.is_occupied) {
+                    var m = s.occupied_until ? minsLeft(s.occupied_until) : null;
+                    if (m !== null && m <= SOON_MINS) { state = 'soon'; label = m + ' min'; aria = 'ending in ' + m + ' minutes'; }
+                    else { state = 'busy'; label = 'Taken'; aria = 'taken'; }
+                } else {
+                    state = 'free'; label = 'Free'; aria = 'free'; free++;
+                }
+            }
+            d.className = 'seat ' + state;
+            d.setAttribute('aria-label', 'Seat ' + s.seat_number + ', ' + aria);
+            d.innerHTML = '<span class="sn">' + Number(s.seat_number) + '</span><span class="st">' + label + '</span>';
+            frag.appendChild(d);
+        });
+
+        g.textContent = '';
+        g.appendChild(frag);
+        $('boardMsg').hidden = true;
+        $('boardSum').hidden = false;
+
+        var n = $('seatsFree');
+        n.textContent = free;
+        n.classList.toggle('none', free === 0);
+        $('seatsOf').textContent = 'free of ' + total;
+
+        var hp = $('heroSeats');
+        hp.classList.remove('pending');
+        hp.classList.toggle('is-live', free > 0);
+        hp.classList.toggle('is-full', free === 0);
+        $('heroSeatsTxt').textContent = free === 0 ? 'Full right now' : free + (free === 1 ? ' seat free' : ' seats free');
+    }
+
+    function loadSeats() {
+        return run(sb.from('seat_status').select('*').order('seat_number'), function (res) {
+            if (res.error || !Array.isArray(res.data) || !res.data.length) {
+                if (!seatRows) boardOffline();
+                return;
+            }
+            seatRows = res.data;
+            drawSeats();
+        });
+    }
+
+    function initDb() {
+        if (!window.supabase || !CFG.SUPABASE_URL || !ANON) return;
+        try { sb = window.supabase.createClient(CFG.SUPABASE_URL, ANON); } catch (e) { return; }
+
+        var refreshStock = debounce(loadStock, 400);
+        var refreshSeats = debounce(loadSeats, 400);
+        window.lnRefreshStock = refreshStock;
+        window.lnRefreshSeats = refreshSeats;
+
+        loadPricing();
+        loadStock();
+        loadSeats();
+
+        setInterval(function () { loadPricing(); loadStock(); loadSeats(); }, 30000);
+        setInterval(drawSeats, 20000);       // keep "min left" honest between fetches
+
+        sb.channel('public-live')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' },  refreshSeats)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'vouchers' }, refreshStock)
+          .subscribe();
+    }
+
+    seatSkeleton();
+
+    var lib = document.createElement('script');
+    lib.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    lib.async = true;
+    lib.onload = initDb;
+    lib.onerror = function () { console.warn('supabase-js failed to load'); boardOffline(); };
+    document.head.appendChild(lib);
+})();
+</script>
+
+<script>
+/* ══════════════ HERO PARTICLE FIELD ══════════════
+   Plain canvas 2D. Dots drift on their own; a mouse pointer over the
+   hero draws nearby dots gently toward it. Touch input is ignored, so
+   phones just get the drift. Pauses when the hero is off-screen or the
+   tab is hidden; draws a single still frame under reduced motion. */
+(function () {
+    var canvas = document.getElementById('field');
+    if (!canvas || !canvas.getContext) return;
+    var hero = canvas.parentNode;
+    var ctx = canvas.getContext('2d');
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var REACH = 150;              // px around the pointer that pulls dots
+    var W = 0, H = 0, dots = [];
+    var mouse = { x: 0, y: 0, on: false };
+    var running = false, visible = true, last = 0;
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    function make() {
+        return {
+            x: rand(0, W), y: rand(0, H),
+            r: rand(0.8, 2),
+            a: rand(0.28, 0.7),
+            vx: rand(-0.14, 0.14), vy: rand(-0.1, 0.1),
+            ix: 0, iy: 0, glow: 0
+        };
+    }
+
+    function resize() {
+        var w = hero.clientWidth, h = hero.clientHeight;
+        if (!w || !h) return;
+        var ow = W, oh = H, dpr = Math.min(window.devicePixelRatio || 1, 2);
+        W = w; H = h;
+        canvas.width = Math.round(W * dpr);
+        canvas.height = Math.round(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        if (ow && oh) dots.forEach(function (d) { d.x *= W / ow; d.y *= H / oh; });
+        var want = Math.min(80, Math.max(26, Math.round(W * H / 8000)));
+        while (dots.length < want) dots.push(make());
+        dots.length = want;
+        if (!running) draw();
+    }
+
+    function step(dt) {
+        var damp = Math.pow(0.95, dt);
+        for (var i = 0; i < dots.length; i++) {
+            var d = dots[i], near = 0;
+
+            if (mouse.on) {
+                var ox = mouse.x - d.x, oy = mouse.y - d.y;
+                var dist = Math.sqrt(ox * ox + oy * oy);
+                if (dist < REACH) {
+                    near = 1 - dist / REACH;
+                    // ease toward the pointer, but never pile up on top of it
+                    if (dist > 36) {
+                        var pull = near * 0.02 * dt / dist;
+                        d.ix += ox * pull;
+                        d.iy += oy * pull;
+                    }
+                }
+            }
+
+            d.glow += (near - d.glow) * Math.min(1, 0.1 * dt);
+            d.ix *= damp; d.iy *= damp;
+            d.x += (d.vx + d.ix) * dt;
+            d.y += (d.vy + d.iy) * dt;
+
+            if (d.x < -6) d.x = W + 6; else if (d.x > W + 6) d.x = -6;
+            if (d.y < -6) d.y = H + 6; else if (d.y > H + 6) d.y = -6;
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#a78bfa';
+        for (var i = 0; i < dots.length; i++) {
+            var d = dots[i];
+            ctx.globalAlpha = Math.min(1, d.a + d.glow * 0.4);
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, d.r + d.glow * 0.8, 0, 6.2832);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    function frame(t) {
+        if (!running) return;
+        var dt = last ? Math.min((t - last) / 16.667, 3) : 1;
+        last = t;
+        step(dt);
+        draw();
+        requestAnimationFrame(frame);
+    }
+
+    function sync() {
+        var want = !reduce && visible && !document.hidden;
+        if (want && !running) { running = true; last = 0; requestAnimationFrame(frame); }
+        else if (!want) running = false;
+    }
+
+    resize();
+    if ('ResizeObserver' in window) new ResizeObserver(resize).observe(hero);
+    else window.addEventListener('resize', resize);
+
+    if (reduce) return;             // one still frame, no motion, no pointer tracking
+
+    hero.addEventListener('pointermove', function (e) {
+        if (e.pointerType === 'touch') return;
+        var r = canvas.getBoundingClientRect();
+        mouse.x = e.clientX - r.left;
+        mouse.y = e.clientY - r.top;
+        mouse.on = true;
+    });
+    hero.addEventListener('pointerleave', function () { mouse.on = false; });
+
+    document.addEventListener('visibilitychange', sync);
+    if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (en) { visible = en[0].isIntersecting; sync(); }).observe(hero);
+    }
+    sync();
+})();
+</script>
+
+</body>
+</html>

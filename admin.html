@@ -1,582 +1,522 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Las Noches · Admin</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Las Noches · Admin</title>
+<meta name="theme-color" content="#0C0E1C" />
+<link rel="manifest" href="manifest.json" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+  .screen { display: none; }
+  .screen.on { display: block; }
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest-admin.json" />
-  <meta name="theme-color" content="#0a1628" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="LN Admin" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 1.25rem; }
 
-  <link rel="stylesheet" href="styles.css" />
-  <style>
-    /* ── Screen visibility ── */
-    .a-screen { display: none; }
-    .a-screen.active { display: block; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+    gap: .8rem;
+    margin-bottom: 1.25rem;
+  }
+  .stat {
+    background: var(--ink-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 1rem 1.1rem;
+  }
+  .stat .v {
+    font-family: var(--display);
+    font-size: 1.85rem; font-weight: 600; line-height: 1.1;
+    letter-spacing: -.03em;
+    margin: .3rem 0 .1rem;
+  }
+  .stat .s { font-size: .72rem; color: var(--paper-3); }
 
-    /* ── Admin login ── */
-    #adminLoginScreen.active {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
+  .cols { display: grid; grid-template-columns: 320px minmax(0,1fr); gap: 1.15rem; align-items: start; }
+  @media (max-width: 980px) { .cols { grid-template-columns: 1fr; } }
 
-    /* ── Dashboard ── */
-    #adminDashboardScreen.active { display: flex; flex-direction: column; min-height: 100vh; }
+  .panel { padding: 1.15rem; }
+  .panel + .panel { margin-top: 1rem; }
+  .panel h3 { font-size: 1rem; margin-bottom: .9rem; }
 
-    /* ── Admin topbar ── */
-    .admin-topbar {
-      background: rgba(10,22,40,.95);
-      border-bottom: 1px solid var(--border);
-      padding: .75rem 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(12px);
-    }
+  .presets { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .9rem; }
+  .preset {
+    padding: .4rem .75rem; border-radius: 999px;
+    border: 1px solid var(--line); background: transparent;
+    color: var(--paper-2); font-family: var(--body); font-size: .78rem; font-weight: 600;
+    cursor: pointer; transition: .15s;
+  }
+  .preset:hover { border-color: var(--violet); color: var(--paper); }
+  .preset.on { background: var(--violet); border-color: var(--violet); color: #fff; }
 
-    .admin-topbar .brand {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
-    }
+  .sumgrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: .7rem; margin-bottom: 1rem; }
+  .sumbox {
+    background: var(--ink); border: 1px solid var(--line);
+    border-radius: var(--r-sm); padding: .8rem .9rem;
+  }
+  .sumbox .v { font-family: var(--display); font-size: 1.4rem; font-weight: 600; margin-top: .2rem; letter-spacing: -.02em; }
 
-    .brand-dot {
-      width: 32px; height: 32px;
-      background: linear-gradient(135deg, var(--navy-600), var(--blue-400));
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .9rem;
-    }
+  .exports { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .export-group { margin-bottom: .9rem; }
+  .export-group .cap { font-size: .74rem; color: var(--paper-2); margin-bottom: .45rem; }
 
-    .brand-name { font-family: var(--font-display); font-size: 1.1rem; }
-    .brand-role {
-      font-size: .7rem;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-top: .1rem;
-    }
-
-    .admin-topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    #adminUserLabel { font-size: .82rem; color: var(--text-secondary); }
-
-    /* ── Page body ── */
-    .admin-body {
-      flex: 1;
-      padding: 2rem;
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    /* ── Stats row ── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .stat-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1.25rem 1.5rem;
-      backdrop-filter: blur(12px);
-    }
-
-    .stat-card .stat-label {
-      font-size: .72rem;
-      font-weight: 600;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: .5rem;
-    }
-
-    .stat-card .stat-value {
-      font-size: 1.75rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      font-family: var(--font-display);
-      line-height: 1;
-    }
-
-    .stat-card .stat-sub {
-      font-size: .75rem;
-      color: var(--text-muted);
-      margin-top: .35rem;
-    }
-
-    /* ── Main grid ── */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 1.5rem;
-      align-items: start;
-    }
-
-    /* ── Sidebar controls ── */
-    .sidebar-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-    }
-
-    .panel-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      backdrop-filter: blur(12px);
-      overflow: hidden;
-    }
-
-    .panel-card-header {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: .6rem;
-    }
-
-    .panel-card-header h4 {
-      font-size: .82rem;
-      font-weight: 600;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-    }
-
-    .panel-card-body { padding: 1.25rem; }
-
-    /* ── Date tabs ── */
-    .tab-group {
-      display: flex;
-      gap: .5rem;
-      margin-bottom: 1rem;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: .55rem .5rem;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text-secondary);
-      font-family: var(--font-body);
-      font-size: .8rem;
-      cursor: pointer;
-      transition: all var(--transition);
-      text-align: center;
-    }
-
-    .tab-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
-    .tab-btn.active {
-      background: rgba(78,158,255,.12);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    /* ── Custom days block ── */
-    .custom-days-row {
-      display: flex;
-      gap: .5rem;
-      align-items: center;
-      margin-top: 1rem;
-    }
-
-    .custom-days-row .form-control {
-      width: 80px;
-      text-align: center;
-    }
-
-    .custom-days-row .form-label-inline {
-      font-size: .8rem;
-      color: var(--text-secondary);
-      white-space: nowrap;
-    }
-
-    /* ── Format radio ── */
-    .format-radio-group {
-      display: flex;
-      gap: 1rem;
-      margin: .75rem 0;
-    }
-
-    .format-radio-group label {
-      display: flex;
-      align-items: center;
-      gap: .4rem;
-      font-size: .85rem;
-      color: var(--text-secondary);
-      cursor: pointer;
-    }
-
-    .format-radio-group input[type="radio"] {
-      accent-color: var(--accent);
-    }
-
-    /* ── Download section ── */
-    .download-current {
-      background: rgba(78,158,255,.04);
-      border: 1px dashed rgba(78,158,255,.2);
-      border-radius: var(--radius);
-      padding: 1rem;
-    }
-
-    .download-current .dl-date {
-      font-size: .82rem;
-      font-weight: 500;
-      color: var(--accent);
-      margin-bottom: .75rem;
-    }
-
-    .dl-btn-row {
-      display: flex;
-      gap: .5rem;
-    }
-
-    /* ── Main view area ── */
-    .view-area {}
-
-    .view-area-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 1.25rem;
-      flex-wrap: wrap;
-    }
-
-    .view-area-header h2 {
-      font-family: var(--font-display);
-      font-size: 1.4rem;
-      color: var(--text-primary);
-    }
-
-    .view-area-header .view-sub {
-      font-size: .82rem;
-      color: var(--text-muted);
-      margin-top: .2rem;
-    }
-
-    /* ── Table wrapper ── */
-    .admin-table-wrap {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      backdrop-filter: blur(12px);
-      overflow: hidden;
-    }
-
-    .admin-table-scroll { overflow-x: auto; }
-
-    #adminTableEmpty {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 4rem 1rem;
-      color: var(--text-muted);
-      text-align: center;
-      gap: .75rem;
-    }
-
-    #adminTableEmpty .empty-icon { font-size: 2.5rem; opacity: .3; }
-
-    /* ── Spinner ── */
-    .spinner {
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Responsive ── */
-    @media (max-width: 1100px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .dashboard-grid { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 600px) {
-      .admin-body { padding: 1rem; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .admin-topbar { padding: .75rem 1rem; }
-    }
-
-    @media (max-width: 380px) {
-      .stats-grid { grid-template-columns: 1fr; }
-    }
-  </style>
+  .tblwrap { max-height: 560px; overflow: auto; }
+</style>
 </head>
+<body>
 
-<body class="page">
-
-  <!-- ══════════════════ ADMIN LOGIN ══════════════════ -->
-  <section id="adminLoginScreen" class="a-screen active">
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<section id="scLogin" class="screen on">
+  <div class="auth-wrap">
     <div class="auth-card">
-      <div class="brand-logo">
-        <div class="logo-icon">⚙</div>
-        <h1>Las Noches</h1>
-        <p class="brand-sub">Admin Portal</p>
+      <div class="auth-mark">
+        <h1>Las <em>Noches</em></h1>
+        <p>Admin</p>
       </div>
-
-      <form id="adminLoginForm" autocomplete="off">
-        <div class="form-group">
-          <label class="form-label" for="adminEmailInput">Email Address</label>
-          <input
-            type="email"
-            id="adminEmailInput"
-            class="form-control"
-            placeholder="admin@lasnoches.com"
-            autocomplete="email"
-            required
-          />
+      <form id="fLogin">
+        <div class="field">
+          <label class="label" for="em">Email</label>
+          <input id="em" class="input" type="email" autocomplete="email" required />
         </div>
-
-        <div class="form-group">
-          <label class="form-label" for="adminPasswordInput">Password</label>
-          <input
-            type="password"
-            id="adminPasswordInput"
-            class="form-control"
-            placeholder="Enter password"
-            autocomplete="current-password"
-            required
-          />
+        <div class="field">
+          <label class="label" for="pw">Password</label>
+          <input id="pw" class="input" type="password" autocomplete="current-password" required />
         </div>
-
-        <div style="margin-top:1.5rem">
-          <button type="submit" id="adminLoginBtn" class="btn btn-primary btn-lg">
-            Sign In
-          </button>
-        </div>
+        <button class="btn btn-primary btn-lg" type="submit" id="bLogin">Sign in</button>
       </form>
     </div>
-  </section>
+  </div>
+</section>
 
+<!-- ═══════════════ DASHBOARD ═══════════════ -->
+<section id="scDash" class="screen">
 
-  <!-- ══════════════════ ADMIN DASHBOARD ══════════════════ -->
-  <section id="adminDashboardScreen" class="a-screen">
+  <div class="topbar">
+    <span class="wordmark">Las <em>Noches</em></span>
+    <span class="pill">Admin</span>
+    <span class="spacer"></span>
+    <span class="dim" id="who" style="font-size:.8rem"></span>
+    <a class="btn btn-quiet btn-sm" href="index.html">Front desk</a>
+    <button class="btn btn-quiet btn-sm" id="bOut">Sign out</button>
+  </div>
 
-    <!-- Topbar -->
-    <div class="admin-topbar">
-      <div class="brand">
-        <div class="brand-dot">⚙</div>
-        <div>
-          <div class="brand-name">Las Noches</div>
-          <div class="brand-role">Admin</div>
-        </div>
+  <div class="wrap">
+
+    <div class="stats">
+      <div class="stat">
+        <div class="eyebrow">Today</div>
+        <div class="v" style="color:var(--violet)" id="kToday">—</div>
+        <div class="s">Check-ins</div>
       </div>
-      <div class="admin-topbar-right">
-        <span id="adminUserLabel"></span>
-        <button id="adminSignOutBtn" class="btn btn-outline btn-sm">Sign Out</button>
+      <div class="stat">
+        <div class="eyebrow">Today's takings</div>
+        <div class="v" style="color:var(--brass)" id="kTodayRev">—</div>
+        <div class="s">Collected</div>
+      </div>
+      <div class="stat">
+        <div class="eyebrow">All time</div>
+        <div class="v" id="kTotal">—</div>
+        <div class="s">Visitors ever</div>
+      </div>
+      <div class="stat">
+        <div class="eyebrow">All time</div>
+        <div class="v" style="color:var(--brass)" id="kRev">—</div>
+        <div class="s">Revenue ever</div>
+      </div>
+      <div class="stat">
+        <div class="eyebrow">All time</div>
+        <div class="v" style="color:var(--mint)" id="kDays">—</div>
+        <div class="s">Days open</div>
+      </div>
+      <div class="stat">
+        <div class="eyebrow">All time</div>
+        <div class="v" id="kVouch">—</div>
+        <div class="s">Vouchers used</div>
       </div>
     </div>
 
-    <!-- Body -->
-    <div class="admin-body">
+    <div class="cols">
 
-      <!-- ── Stats ── -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Today's Entries</div>
-          <div class="stat-value text-accent" id="statToday">—</div>
-          <div class="stat-sub">Visitors logged today</div>
+      <!-- controls -->
+      <div>
+        <div class="card panel">
+          <h3>Reporting period</h3>
+          <div class="presets" id="presets"></div>
+          <div class="row-2">
+            <div>
+              <label class="label" for="from">From</label>
+              <input id="from" class="input" type="date" />
+            </div>
+            <div>
+              <label class="label" for="to">To</label>
+              <input id="to" class="input" type="date" />
+            </div>
+          </div>
+          <button class="btn btn-primary btn-lg" id="bRun" style="margin-top:.9rem">Run report</button>
+          <p class="dim" style="font-size:.74rem;margin-top:.6rem">Any range up to 365 days.</p>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Today's Revenue</div>
-          <div class="stat-value text-gold" id="statRevenue">—</div>
-          <div class="stat-sub">Collected today</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total Entries</div>
-          <div class="stat-value" id="statTotal">—</div>
-          <div class="stat-sub">All time</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Active Days</div>
-          <div class="stat-value text-success" id="statDates">—</div>
-          <div class="stat-sub">Days with entries</div>
+
+        <div class="card panel">
+          <h3>Download</h3>
+
+          <div class="export-group">
+            <div class="cap">Every check-in in the period</div>
+            <div class="exports">
+              <button class="btn btn-quiet btn-sm" data-x="raw-xlsx">Excel</button>
+              <button class="btn btn-quiet btn-sm" data-x="raw-pdf">PDF</button>
+            </div>
+          </div>
+
+          <div class="export-group">
+            <div class="cap">Summary — totals and most popular voucher</div>
+            <div class="exports">
+              <button class="btn btn-quiet btn-sm" data-x="sum-xlsx">Excel</button>
+              <button class="btn btn-quiet btn-sm" data-x="sum-pdf">PDF</button>
+            </div>
+          </div>
+
+          <div class="export-group" style="margin-bottom:0">
+            <div class="cap">Plain text</div>
+            <div class="exports">
+              <button class="btn btn-quiet btn-sm" data-x="raw-csv">Raw CSV</button>
+              <button class="btn btn-quiet btn-sm" data-x="sum-csv">Summary CSV</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- ── Main grid ── -->
-      <div class="dashboard-grid">
-
-        <!-- ── Sidebar ── -->
-        <div class="sidebar-panel">
-
-          <!-- Browse by date -->
-          <div class="panel-card">
-            <div class="panel-card-header">
-              <span>📅</span>
-              <h4>Browse Entries</h4>
+      <!-- results -->
+      <div>
+        <div class="card panel">
+          <h3 id="sumTitle">Summary</h3>
+          <div class="sumgrid">
+            <div class="sumbox">
+              <div class="eyebrow">Customers</div>
+              <div class="v" style="color:var(--violet)" id="sCust">—</div>
             </div>
-            <div class="panel-card-body">
-
-              <!-- Quick tabs -->
-              <div class="tab-group">
-                <button class="tab-btn active" data-range="today">Today</button>
-                <button class="tab-btn" data-range="yesterday">Yesterday</button>
-              </div>
-
-              <!-- Date dropdown -->
-              <div class="form-group">
-                <label class="form-label" for="dateDropdown">Pick Any Date</label>
-                <select id="dateDropdown" class="form-select">
-                  <option value="">— Loading dates… —</option>
-                </select>
-              </div>
+            <div class="sumbox">
+              <div class="eyebrow">Revenue</div>
+              <div class="v" style="color:var(--brass)" id="sRev">—</div>
+            </div>
+            <div class="sumbox">
+              <div class="eyebrow">Most popular</div>
+              <div class="v" style="color:var(--mint)" id="sPop">—</div>
+            </div>
+            <div class="sumbox">
+              <div class="eyebrow">Busiest day</div>
+              <div class="v" id="sBusy" style="font-size:1.05rem">—</div>
             </div>
           </div>
 
-          <!-- Download selected date -->
-          <div class="panel-card">
-            <div class="panel-card-header">
-              <span>⬇</span>
-              <h4>Download Current View</h4>
-            </div>
-            <div class="panel-card-body">
-              <div class="download-current">
-                <div class="dl-date" id="downloadDateLabel">No date selected</div>
-                <div class="dl-btn-row">
-                  <button id="downloadPdfBtn" class="btn btn-outline btn-sm" style="flex:1">
-                    PDF
-                  </button>
-                  <button id="downloadCsvBtn" class="btn btn-gold btn-sm" style="flex:1">
-                    CSV
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bulk download -->
-          <div class="panel-card">
-            <div class="panel-card-header">
-              <span>📦</span>
-              <h4>Bulk Download</h4>
-            </div>
-            <div class="panel-card-body">
-              <p class="text-secondary" style="font-size:.82rem;margin-bottom:1rem">
-                Download entries for the last <em>N</em> days counting from today.
-              </p>
-
-              <div class="custom-days-row">
-                <input
-                  type="number"
-                  id="customDaysInput"
-                  class="form-control"
-                  value="3"
-                  min="1"
-                  max="365"
-                />
-                <span class="form-label-inline">days back</span>
-              </div>
-
-              <div class="format-radio-group">
-                <label>
-                  <input type="radio" name="dlFormat" value="pdf" /> PDF
-                </label>
-                <label>
-                  <input type="radio" name="dlFormat" value="csv" checked /> CSV
-                </label>
-              </div>
-
-              <button id="customDaysDownloadBtn" class="btn btn-primary" style="width:100%">
-                Download
-              </button>
-            </div>
-          </div>
-
-        </div><!-- /sidebar -->
-
-        <!-- ── Main view ── -->
-        <div class="view-area">
-          <div class="view-area-header">
-            <div>
-              <h2 id="viewingDateLabel">—</h2>
-              <p id="viewingDateSub" class="view-sub"></p>
-            </div>
-            <!-- Customer count badge -->
-            <div style="
-              display:flex;align-items:center;gap:.75rem;
-              background:rgba(78,158,255,.07);
-              border:1px solid rgba(78,158,255,.18);
-              border-radius:12px;padding:.7rem 1.1rem;
-              flex-shrink:0;
-            ">
-              <span style="font-size:1.3rem">👥</span>
-              <div>
-                <div style="font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600">Customers</div>
-                <div style="font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--accent);line-height:1" id="adminCustomerCount">—</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="admin-table-wrap">
-            <div class="admin-table-scroll">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Voucher Code</th>
-                    <th>Seat</th>
-                    <th>Time In</th>
-                    <th>Time Out</th>
-                    <th>Duration</th>
-                    <th>Amount</th>
-                  </tr>
-                </thead>
-                <tbody id="adminTableBody"></tbody>
-              </table>
-            </div>
-
-            <div id="adminTableEmpty">
-              <div class="empty-icon">🗂</div>
-              <p class="text-muted">No entries found for this date.</p>
+          <div class="tblwrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Date</th><th>Voucher</th><th>Seat</th>
+                  <th>In</th><th>Hrs</th><th style="text-align:right">Paid</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+            <div id="none" class="empty">
+              <strong>Nothing in this period</strong>
+              Pick a different range and run the report again.
             </div>
           </div>
         </div>
+      </div>
 
-      </div><!-- /dashboard-grid -->
-    </div><!-- /admin-body -->
-  </section>
+    </div>
+  </div>
+</section>
 
+<div id="toaster"></div>
 
-  <!-- ══════════════════ SCRIPTS ══════════════════ -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="app.js"></script>
-  <script src="admin.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js')
-        .then(r => console.log('SW registered:', r.scope))
-        .catch(e => console.warn('SW failed:', e));
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="config.js"></script>
+<script>
+const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+
+const naira = n => '₦' + Number(n || 0).toLocaleString('en-NG');
+const WAT = ms => new Date(ms + 3600000);
+const today = () => WAT(Date.now()).toISOString().slice(0, 10);
+function shift(days) {
+  const d = WAT(Date.now()); d.setUTCDate(d.getUTCDate() - days);
+  return d.toISOString().slice(0, 10);
+}
+
+function toast(m, k = '') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + k; el.textContent = m;
+  $('toaster').appendChild(el); setTimeout(() => el.remove(), 3600);
+}
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  $(id).classList.add('on');
+}
+
+let rows = [], summary = {}, range = { from: '', to: '' };
+
+/* ---------- auth ---------- */
+
+$('fLogin').addEventListener('submit', async e => {
+  e.preventDefault();
+  const b = $('bLogin'); b.disabled = true; b.textContent = 'Signing in…';
+  const { error } = await sb.auth.signInWithPassword({ email: $('em').value.trim(), password: $('pw').value });
+  b.disabled = false; b.textContent = 'Sign in';
+  if (error) { toast('Wrong email or password.', 'bad'); return; }
+  boot();
+});
+
+$('bOut').addEventListener('click', async () => { await sb.auth.signOut(); show('scLogin'); });
+
+async function boot() {
+  const { data } = await sb.auth.getUser();
+  if (!data.user) return show('scLogin');
+  $('who').textContent = data.user.email;
+  show('scDash');
+  await headline();
+  setPreset(7);
+  run();
+}
+
+/* ---------- headline numbers ---------- */
+
+async function headline() {
+  const d = today();
+
+  const { data: td } = await sb.from('entries').select('amount_paid').eq('entry_date', d);
+  $('kToday').textContent = (td || []).length;
+  $('kTodayRev').textContent = naira((td || []).reduce((a, r) => a + Number(r.amount_paid), 0));
+
+  const { data: life } = await sb.from('lifetime_stats').select('*').maybeSingle();
+  $('kTotal').textContent = life?.total_entries ?? 0;
+  $('kRev').textContent   = naira(life?.total_revenue ?? 0);
+  $('kDays').textContent  = life?.active_days ?? 0;
+
+  const { count } = await sb.from('vouchers')
+    .select('code', { count: 'exact', head: true })
+    .eq('status', 'in_use');
+  $('kVouch').textContent = count ?? 0;
+}
+
+/* ---------- range ---------- */
+
+const PRESETS = [
+  ['Today', 0], ['7 days', 7], ['30 days', 30],
+  ['90 days', 90], ['6 months', 182], ['1 year', 365],
+];
+
+PRESETS.forEach(([label, days]) => {
+  const b = document.createElement('button');
+  b.className = 'preset'; b.textContent = label; b.dataset.days = days;
+  b.addEventListener('click', () => { setPreset(days); run(); });
+  $('presets').appendChild(b);
+});
+
+function setPreset(days) {
+  document.querySelectorAll('.preset').forEach(p =>
+    p.classList.toggle('on', Number(p.dataset.days) === days));
+  $('from').value = days === 0 ? today() : shift(days);
+  $('to').value = today();
+}
+
+['from', 'to'].forEach(id => $(id).addEventListener('change', () =>
+  document.querySelectorAll('.preset').forEach(p => p.classList.remove('on'))));
+
+$('bRun').addEventListener('click', run);
+
+async function run() {
+  const from = $('from').value, to = $('to').value;
+  if (!from || !to) { toast('Pick both dates.', 'bad'); return; }
+  if (from > to) { toast('The start date is after the end date.', 'bad'); return; }
+
+  const span = (new Date(to) - new Date(from)) / 86400000;
+  if (span > 365) { toast('Ranges are limited to 365 days.', 'bad'); return; }
+
+  range = { from, to };
+  const b = $('bRun'); b.disabled = true; b.textContent = 'Running…';
+
+  const { data, error } = await sb.from('entries')
+    .select('entry_date,voucher_code,seat_number,time_in,time_out,duration_hrs,amount_paid')
+    .gte('entry_date', from).lte('entry_date', to)
+    .order('entry_date', { ascending: false })
+    .order('time_in', { ascending: false });
+
+  b.disabled = false; b.textContent = 'Run report';
+  if (error) { toast('Could not load: ' + error.message, 'bad'); return; }
+
+  rows = data || [];
+  summarise();
+  render();
+}
+
+function summarise() {
+  const revenue = rows.reduce((a, r) => a + Number(r.amount_paid || 0), 0);
+
+  const byDur = {}, byDay = {};
+  for (const r of rows) {
+    const d = Number(r.duration_hrs);
+    byDur[d] = (byDur[d] || 0) + 1;
+    byDay[r.entry_date] = (byDay[r.entry_date] || 0) + 1;
+  }
+
+  const popDur = Object.entries(byDur).sort((a, b) => b[1] - a[1])[0];
+  const busy   = Object.entries(byDay).sort((a, b) => b[1] - a[1])[0];
+
+  summary = {
+    from: range.from, to: range.to,
+    customers: rows.length,
+    revenue,
+    popular: popDur ? `${popDur[0]} hr` : '—',
+    popularCount: popDur ? popDur[1] : 0,
+    busiest: busy ? busy[0] : '—',
+    busiestCount: busy ? busy[1] : 0,
+    daysActive: Object.keys(byDay).length,
+    average: rows.length ? Math.round(revenue / rows.length) : 0,
+  };
+}
+
+function render() {
+  $('sumTitle').textContent = `Summary · ${range.from} to ${range.to}`;
+  $('sCust').textContent = summary.customers;
+  $('sRev').textContent  = naira(summary.revenue);
+  $('sPop').textContent  = summary.popular;
+  $('sBusy').textContent = summary.busiest;
+
+  const body = $('rows'); body.innerHTML = '';
+  $('none').style.display = rows.length ? 'none' : 'block';
+
+  for (const r of rows) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono dim">${r.entry_date}</td>
+      <td class="mono">${r.voucher_code}</td>
+      <td><span class="pill">${r.seat_number}</span></td>
+      <td class="mono">${(r.time_in || '').slice(0, 5)}</td>
+      <td class="mono">${r.duration_hrs}</td>
+      <td class="mono" style="text-align:right">${naira(r.amount_paid)}</td>`;
+    body.appendChild(tr);
+  }
+}
+
+/* ---------- exports ---------- */
+
+const stamp = () => `${range.from}_to_${range.to}`;
+
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+function rawAoA() {
+  return [
+    ['Date', 'Voucher', 'Seat', 'Time in', 'Time out', 'Hours', 'Amount paid (NGN)'],
+    ...rows.map(r => [r.entry_date, r.voucher_code, r.seat_number,
+      (r.time_in || '').slice(0, 5), (r.time_out || '').slice(0, 5) || '', Number(r.duration_hrs), Number(r.amount_paid)]),
+  ];
+}
+
+function sumAoA() {
+  return [
+    ['Las Noches — summary report'],
+    ['Period', `${summary.from} to ${summary.to}`],
+    [],
+    ['Total customers', summary.customers],
+    ['Total revenue (NGN)', summary.revenue],
+    ['Most popular voucher', summary.popular],
+    ['— times bought', summary.popularCount],
+    ['Busiest day', summary.busiest],
+    ['— check-ins that day', summary.busiestCount],
+    ['Days with activity', summary.daysActive],
+    ['Average spend (NGN)', summary.average],
+  ];
+}
+
+function toCSV(aoa) {
+  return aoa.map(r => r.map(c => {
+    const s = String(c ?? '');
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  }).join(',')).join('\n');
+}
+
+function toXLSX(aoa, sheet, file) {
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), sheet);
+  XLSX.writeFile(wb, file);
+}
+
+function pdfHead(doc, title) {
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+  doc.text('Las Noches', 14, 18);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+  doc.setTextColor(110);
+  doc.text(title, 14, 25);
+  doc.text(`${range.from} to ${range.to}`, 14, 30);
+  doc.setTextColor(0);
+}
+
+document.querySelectorAll('[data-x]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!rows.length) { toast('Run a report first.', 'bad'); return; }
+    const kind = btn.dataset.x;
+    const { jsPDF } = window.jspdf;
+
+    if (kind === 'raw-csv')  return download(new Blob([toCSV(rawAoA())], { type: 'text/csv' }), `lasnoches_entries_${stamp()}.csv`);
+    if (kind === 'sum-csv')  return download(new Blob([toCSV(sumAoA())], { type: 'text/csv' }), `lasnoches_summary_${stamp()}.csv`);
+    if (kind === 'raw-xlsx') return toXLSX(rawAoA(), 'Entries', `lasnoches_entries_${stamp()}.xlsx`);
+    if (kind === 'sum-xlsx') return toXLSX(sumAoA(), 'Summary', `lasnoches_summary_${stamp()}.xlsx`);
+
+    if (kind === 'raw-pdf') {
+      const doc = new jsPDF();
+      pdfHead(doc, 'Every check-in');
+      doc.autoTable({
+        startY: 36,
+        head: [rawAoA()[0]],
+        body: rawAoA().slice(1).map(r => r.map((c, i) => i === 6 ? naira(c) : c)),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [124, 111, 240] },
+        alternateRowStyles: { fillColor: [246, 246, 250] },
+      });
+      doc.save(`lasnoches_entries_${stamp()}.pdf`);
+      return;
     }
-  </script>
+
+    if (kind === 'sum-pdf') {
+      const doc = new jsPDF();
+      pdfHead(doc, 'Summary');
+      doc.autoTable({
+        startY: 36,
+        head: [['Measure', 'Value']],
+        body: [
+          ['Total customers', String(summary.customers)],
+          ['Total revenue', naira(summary.revenue)],
+          ['Most popular voucher', `${summary.popular} (${summary.popularCount} bought)`],
+          ['Busiest day', `${summary.busiest} (${summary.busiestCount} check-ins)`],
+          ['Days with activity', String(summary.daysActive)],
+          ['Average spend', naira(summary.average)],
+        ],
+        styles: { fontSize: 10, cellPadding: 4 },
+        headStyles: { fillColor: [124, 111, 240] },
+      });
+      doc.save(`lasnoches_summary_${stamp()}.pdf`);
+      return;
+    }
+  });
+});
+
+/* ---------- boot ---------- */
+(async () => {
+  const { data } = await sb.auth.getSession();
+  if (data.session) boot();
+})();
+</script>
 </body>
 </html>

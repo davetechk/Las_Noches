@@ -1,704 +1,845 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Las Noches · Receptionist</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Las Noches · Front Desk</title>
+<meta name="theme-color" content="#0C0E1C" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+  /* ── shell ── */
+  .screen { display: none; }
+  .screen.on { display: block; }
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0a1628" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Las Noches" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
+  .deck {
+    display: grid;
+    grid-template-columns: minmax(0,1.35fr) minmax(320px,.85fr);
+    gap: 1.15rem;
+    padding: 1.15rem;
+    max-width: 1500px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (max-width: 1020px) { .deck { grid-template-columns: 1fr; } }
 
-  <link rel="stylesheet" href="styles.css" />
-  <style>
-    /* ── Screen visibility ── */
-    .screen { display: none; }
-    .screen.active { display: block; }
+  /* ── sync ribbon ── */
+  .ribbon {
+    display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+    padding: .5rem 1.25rem;
+    font-size: .78rem;
+    background: var(--ink-1);
+    border-bottom: 1px solid var(--line);
+    color: var(--paper-2);
+  }
+  .ribbon.stale { background: rgba(242,96,122,.09); border-bottom-color: rgba(242,96,122,.3); }
 
-    /* ── Login screen ── */
-    #loginScreen.active {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
+  /* ══════════════════════════════════════════
+     THE ROOM — the signature element.
+     15 seats. Brass = lamplight on (occupied),
+     mint = free. The depleting ring is the
+     paid time running out.
+     ══════════════════════════════════════════ */
+  .room-head {
+    display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .room-head h2 { font-size: 1.35rem; }
+  .room-head .tally { margin-left: auto; display: flex; gap: .45rem; }
 
-    /* ── Session setup ── */
-    #sessionSetupScreen.active {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 2rem;
-    }
+  .room {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: .7rem;
+  }
+  @media (max-width: 620px) { .room { grid-template-columns: repeat(3, 1fr); } }
 
-    .session-card {
-      max-width: 460px;
-      width: 100%;
-    }
+  .seat {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: var(--r);
+    border: 1px solid var(--line);
+    background: var(--ink-1);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: .12rem;
+    cursor: pointer;
+    font-family: var(--body);
+    color: var(--paper);
+    transition: transform .13s, border-color .15s, background .15s;
+    overflow: hidden;
+  }
+  .seat:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+  .seat .n {
+    font-family: var(--display);
+    font-size: 1.75rem; font-weight: 600; line-height: 1;
+    letter-spacing: -.03em;
+  }
+  .seat .s { font-size: .66rem; letter-spacing: .07em; text-transform: uppercase; color: var(--paper-3); }
 
-    .session-card .card-header h2 {
-      font-family: var(--font-display);
-      font-size: 1.2rem;
-    }
+  .seat.free { border-color: rgba(99,224,174,.28); background: var(--mint-dim); }
+  .seat.free .n { color: var(--mint); }
+  .seat.free:hover { transform: translateY(-3px); border-color: var(--mint); }
 
-    /* ── Entry screen ── */
-    #entryScreen {
-      min-height: 100vh;
-      padding: 0;
-    }
+  .seat.busy { border-color: rgba(227,167,92,.3); background: var(--brass-dim); cursor: default; }
+  .seat.busy .n { color: var(--brass); }
+  .seat.busy .s { color: var(--brass); font-family: var(--mono); font-size: .7rem; letter-spacing: 0; }
 
-    #entryScreen.active { display: flex; flex-direction: column; }
+  .seat.off { opacity: .3; cursor: not-allowed; }
+  .seat.off .n { color: var(--paper-3); }
 
-    /* ── Topbar ── */
-    .topbar {
-      background: rgba(10,22,40,.95);
-      border-bottom: 1px solid var(--border);
-      padding: .75rem 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(12px);
-    }
+  .seat.sel { border-color: var(--violet); background: var(--violet-dim); transform: translateY(-3px); }
+  .seat.sel .n { color: var(--paper); }
 
-    .topbar-brand {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
-    }
+  /* the depleting ring */
+  .seat .ring {
+    position: absolute; inset: 0;
+    border-radius: var(--r);
+    padding: 2px;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none;
+  }
 
-    .topbar-brand .brand-dot {
-      width: 32px; height: 32px;
-      background: linear-gradient(135deg, var(--navy-600), var(--blue-400));
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .9rem;
-    }
+  /* ── voucher picker ── */
+  .durs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .8rem; }
+  .dur {
+    padding: .45rem .85rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--paper-2);
+    font-family: var(--body); font-size: .82rem; font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .dur:hover { border-color: var(--violet); color: var(--paper); }
+  .dur.on { background: var(--violet); border-color: var(--violet); color: #fff; }
+  .dur .cnt { opacity: .65; font-weight: 400; margin-left: .25rem; }
 
-    .topbar-brand .brand-name {
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
+  .codes {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(112px,1fr));
+    gap: .45rem;
+    max-height: 216px; overflow-y: auto;
+    padding-right: .2rem;
+  }
+  .code {
+    font-family: var(--mono); font-size: .84rem; font-weight: 500;
+    padding: .58rem .4rem;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--line);
+    background: var(--ink);
+    color: var(--paper);
+    cursor: pointer;
+    transition: border-color .13s, background .13s, transform .13s;
+  }
+  .code:hover { border-color: var(--brass); transform: translateY(-1px); }
+  .code.on { background: var(--brass); border-color: var(--brass); color: #241503; }
 
-    .topbar-meta {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
+  .panel { padding: 1.15rem; }
+  .panel + .panel { margin-top: 1.15rem; }
+  .panel h3 { font-size: 1.02rem; margin-bottom: .9rem; }
 
-    #sessionInfo {
-      font-size: .8rem;
-      color: var(--text-secondary);
-      letter-spacing: .03em;
-    }
+  .log-scroll { max-height: 380px; overflow-y: auto; }
 
-    .entry-count-pill {
-      background: rgba(78,158,255,.12);
-      border: 1px solid rgba(78,158,255,.2);
-      border-radius: 999px;
-      padding: .25rem .75rem;
-      font-size: .78rem;
-      color: var(--blue-300);
-    }
-
-    /* ── Omada Sync strip ── */
-    .omada-sync-bar {
-      background: rgba(6,13,26,.6);
-      border-bottom: 1px solid rgba(78,158,255,.1);
-      padding: .5rem 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      font-size: .78rem;
-      color: var(--text-muted);
-    }
-
-    .omada-sync-bar .sync-label {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      font-weight: 500;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      font-size: .7rem;
-      color: var(--text-muted);
-    }
-
-    /* Animated sync status dot */
-    .sync-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      transition: background .4s;
-    }
-
-    .sync-dot.idle    { background: var(--text-muted); }
-    .sync-dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
-    .sync-dot.synced  { background: var(--success); }
-    .sync-dot.error   { background: var(--danger); }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: .3; }
-    }
-
-    #lastSyncTime {
-      margin-left: auto;
-      font-size: .73rem;
-      color: var(--text-muted);
-    }
-
-    /* ── Main content split ── */
-    .entry-layout {
-      display: grid;
-      grid-template-columns: 420px 1fr;
-      gap: 0;
-      flex: 1;
-      min-height: 0;
-    }
-
-    .entry-panel {
-      background: rgba(10,22,40,.5);
-      border-right: 1px solid var(--border);
-      padding: 1.75rem 1.5rem;
-      overflow-y: auto;
-    }
-
-    .entry-panel h3 {
-      font-family: var(--font-display);
-      font-size: 1.05rem;
-      margin-bottom: 1.5rem;
-      color: var(--text-primary);
-    }
-
-    .log-panel {
-      padding: 1.75rem 1.5rem;
-      overflow-y: auto;
-    }
-
-    .log-panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.25rem;
-    }
-
-    .log-panel-header h3 {
-      font-family: var(--font-display);
-      font-size: 1.05rem;
-    }
-
-    /* ── Form grid ── */
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .85rem;
-    }
-
-    /* ── Voucher search + select block ── */
-    .voucher-field-wrap {
-      position: relative;
-    }
-
-    .voucher-search-input {
-      width: 100%;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-bottom: none;
-      border-radius: var(--radius) var(--radius) 0 0;
-      padding: .65rem 1rem .65rem 2.5rem;
-      color: var(--text-primary);
-      font-family: var(--font-body);
-      font-size: .88rem;
-      outline: none;
-      transition: border-color var(--transition), box-shadow var(--transition);
-    }
-
-    .voucher-search-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-
-    .voucher-search-input::placeholder { color: var(--text-muted); }
-
-    .voucher-search-icon {
-      position: absolute;
-      left: .85rem;
-      top: .75rem;
-      font-size: .85rem;
-      pointer-events: none;
-      color: var(--text-muted);
-    }
-
-    #voucherSelect {
-      border-radius: 0 0 var(--radius) var(--radius);
-      border-top: 1px solid rgba(78,158,255,.08);
-    }
-
-    #voucherSelect:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-
-    /* Voucher available count pill */
-    .voucher-meta-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: .5rem;
-    }
-
-    .voucher-available-pill {
-      font-size: .72rem;
-      color: var(--success);
-      background: rgba(46,204,142,.08);
-      border: 1px solid rgba(46,204,142,.2);
-      border-radius: 999px;
-      padding: .15rem .6rem;
-      font-weight: 500;
-    }
-
-    /* ── Time fields ── */
-    input[type="time"].form-control { cursor: pointer; }
-
-    /* ── Amount field with prefix ── */
-    .input-prefix-wrap { position: relative; }
-
-    .input-prefix {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      font-size: .9rem;
-      pointer-events: none;
-    }
-
-    .input-prefix-wrap .form-control { padding-left: 2rem; }
-
-    /* ── Duration read-only ── */
-    input[readonly].form-control {
-      background: rgba(78,158,255,.04);
-      color: var(--text-secondary);
-      cursor: default;
-    }
-
-    /* ── Submit btn area ── */
-    .submit-area { margin-top: 1.5rem; }
-
-    /* ── Spinner ── */
-    .spinner {
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Table wrapper ── */
-    .table-wrap {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-    }
-
-    .table-scroll { overflow-x: auto; }
-
-    #tableEmpty {
-      display: none;
-      padding: 3rem 1rem;
-      text-align: center;
-      color: var(--text-muted);
-    }
-
-    #tableEmpty .empty-icon { font-size: 2rem; margin-bottom: .75rem; opacity: .3; }
-
-    /* ── Divider inside form ── */
-    .form-section-label {
-      font-size: .68rem;
-      font-weight: 600;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin: 1.25rem 0 .75rem;
-      display: flex;
-      align-items: center;
-      gap: .6rem;
-    }
-
-    .form-section-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    /* ── Responsive ── */
-    @media (max-width: 960px) {
-      .entry-layout { grid-template-columns: 1fr; }
-      .entry-panel  { border-right: none; border-bottom: 1px solid var(--border); }
-    }
-
-    @media (max-width: 520px) {
-      .form-row     { grid-template-columns: 1fr; }
-      .topbar-meta  { gap: .5rem; }
-      .omada-sync-bar { flex-wrap: wrap; gap: .5rem; }
-      #lastSyncTime { margin-left: 0; }
-    }
-  </style>
+  /* scrollbars */
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--ink-3); border-radius: 9px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--line); }
+</style>
 </head>
+<body>
 
-<body class="page">
-
-  <!-- ══════════════════ LOGIN SCREEN ══════════════════ -->
-  <section id="loginScreen" class="screen active">
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<section id="scLogin" class="screen on">
+  <div class="auth-wrap">
     <div class="auth-card">
-      <div class="brand-logo">
-        <div class="logo-icon">🏙</div>
-        <h1>Las Noches</h1>
-        <p class="brand-sub">Receptionist Portal</p>
+      <div class="auth-mark">
+        <h1>Las <em>Noches</em></h1>
+        <p>Front desk</p>
       </div>
-
-      <form id="loginForm">
-        <div class="form-group">
-          <label class="form-label" for="passwordInput">Access Password</label>
-          <input
-            type="password"
-            id="passwordInput"
-            class="form-control"
-            placeholder="Enter your password"
-            autocomplete="current-password"
-            required
-          />
+      <form id="fLogin">
+        <div class="field">
+          <label class="label" for="pin">Staff PIN</label>
+          <input id="pin" class="input mono" type="password" inputmode="numeric"
+                 placeholder="••••••" autocomplete="current-password" required
+                 style="letter-spacing:.35em;text-align:center;font-size:1.2rem" />
         </div>
-        <div class="submit-area">
-          <button type="submit" id="loginBtn" class="btn btn-primary btn-lg">
-            Unlock Portal
-          </button>
-        </div>
+        <button class="btn btn-primary btn-lg" type="submit" id="bLogin">Open the desk</button>
       </form>
     </div>
-  </section>
+  </div>
+</section>
 
-
-  <!-- ══════════════════ SESSION SETUP ══════════════════ -->
-  <section id="sessionSetupScreen" class="screen">
-    <div class="session-card">
-      <div class="card">
-        <div class="card-header">
-          <h2>Start Today's Session</h2>
-          <button id="signOutBtn" class="btn btn-outline btn-sm">Sign Out</button>
-        </div>
-        <div class="card-body">
-          <p class="text-secondary" style="font-size:.88rem;margin-bottom:1.5rem">
-            Confirm the date and enter your name before logging entries.
-          </p>
-
-          <form id="sessionForm">
-            <div class="form-group">
-              <label class="form-label" for="sessionDateInput">Session Date</label>
-              <input
-                type="date"
-                id="sessionDateInput"
-                class="form-control"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="receptionistNameInput">Your Name</label>
-              <input
-                type="text"
-                id="receptionistNameInput"
-                class="form-control"
-                placeholder="e.g. David"
-                autocomplete="name"
-                required
-              />
-            </div>
-
-            <div class="submit-area">
-              <button type="submit" id="startSessionBtn" class="btn btn-primary btn-lg">
-                Begin Session →
-              </button>
-            </div>
-          </form>
-        </div>
+<!-- ═══════════════ SESSION START ═══════════════ -->
+<section id="scSession" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-mark">
+        <h1>Today's <em>shift</em></h1>
+        <p>Who's on the desk?</p>
       </div>
+      <form id="fSession">
+        <div class="field">
+          <label class="label" for="sDate">Date</label>
+          <input id="sDate" class="input" type="date" required />
+        </div>
+        <div class="field">
+          <label class="label" for="sName">Your name</label>
+          <input id="sName" class="input" type="text" placeholder="e.g. Amina" required />
+        </div>
+        <button class="btn btn-primary btn-lg" type="submit" id="bSession">Start shift</button>
+        <button class="btn btn-quiet btn-lg" type="button" id="bSignOut" style="margin-top:.55rem">Sign out</button>
+      </form>
     </div>
-  </section>
+  </div>
+</section>
 
+<!-- ═══════════════ DESK ═══════════════ -->
+<section id="scDesk" class="screen">
 
-  <!-- ══════════════════ ENTRY SCREEN ══════════════════ -->
-  <section id="entryScreen" class="screen">
+  <div class="topbar">
+    <span class="wordmark">Las <em>Noches</em></span>
+    <span class="pill" id="pShift">—</span>
+    <span class="spacer"></span>
+    <span class="pill pill-mint"><span id="nFree">0</span> free</span>
+    <span class="pill pill-brass"><span id="nBusy">0</span> in use</span>
+    <span class="pill"><span id="nToday">0</span> today</span>
+    <a class="btn btn-quiet btn-sm" href="admin.html">Admin</a>
+    <button class="btn btn-quiet btn-sm" id="bChange">Change date</button>
+  </div>
 
-    <!-- Top bar -->
-    <div class="topbar">
-      <div class="topbar-brand">
-        <div class="brand-dot">🏙</div>
-        <span class="brand-name">Las Noches</span>
+  <div class="ribbon" id="bellRow" style="display:none;background:var(--violet-dim);border-bottom-color:rgba(124,111,240,.3)">
+    <span class="dot" style="color:var(--violet)"></span>
+    <span id="bellText">Turn on alerts so you get told before a seat's time runs out.</span>
+    <button class="btn btn-primary btn-sm" id="bellBtn" style="margin-left:auto">Turn on alerts</button>
+  </div>
+
+  <div class="ribbon" id="ribbon">
+    <span class="dot" id="syncDot" style="color:var(--paper-3)"></span>
+    <span id="syncText">Checking voucher sync…</span>
+  </div>
+
+  <div class="deck">
+
+    <!-- LEFT: the room -->
+    <div>
+      <div class="room-head">
+        <h2>The room</h2>
+        <span class="dim" style="font-size:.82rem">Tap a free seat to check someone in</span>
       </div>
-      <div class="topbar-meta">
-        <span id="sessionInfo" class="text-secondary"></span>
-        <span class="entry-count-pill">
-          <span id="entryCount">0</span> entries today
-        </span>
-        <button id="newSessionBtn" class="btn btn-outline btn-sm">Change Date</button>
-      </div>
-      <!-- Admin link -->
-      <a href="admin.html" class="btn btn-sm" style="
-        color:var(--gold);
-        border:1px solid rgba(201,168,76,.35);
-        background:rgba(201,168,76,.08);
-        border-radius:8px;
-        flex-shrink:0;
-        margin-left:.5rem;
-        font-weight:500;
-      ">Admin ↗</a>
+      <div class="room" id="room"></div>
     </div>
 
-    <!-- ── Omada Sync Status Bar ── -->
-    <div class="omada-sync-bar">
-      <span class="sync-label">
-        <span class="sync-dot idle" id="syncStatusDot"></span>
-        Omada Wi-Fi Sync
-      </span>
-      <button
-        id="syncOmadaBtn"
-        class="btn btn-outline btn-sm"
-        style="padding:.3rem .85rem;font-size:.75rem;border-color:rgba(78,158,255,.25)"
-        title="Manually pull latest session data from the Omada Controller"
-      >
-        ↻ Sync Now
-      </button>
-      <span id="lastSyncTime" style="font-size:.73rem;color:var(--text-muted)">
-        Not yet synced
-      </span>
-    </div>
-
-    <!-- Layout -->
-    <div class="entry-layout">
-
-      <!-- LEFT: Entry form -->
-      <div class="entry-panel">
-        <h3>New Visitor Entry</h3>
-
-        <!-- Customer counter -->
-        <div id="customerCounterBox" style="
-          display:flex;align-items:center;gap:1rem;
-          background:rgba(78,158,255,.07);
-          border:1px solid rgba(78,158,255,.18);
-          border-radius:12px;padding:.85rem 1.1rem;
-          margin-bottom:1.4rem;
-        ">
-          <div style="
-            width:48px;height:48px;border-radius:12px;flex-shrink:0;
-            background:linear-gradient(135deg,var(--navy-600),var(--blue-400));
-            display:flex;align-items:center;justify-content:center;
-            font-size:1.3rem;
-          ">👥</div>
-          <div>
-            <div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600">
-              Customers Today
-            </div>
-            <div style="display:flex;align-items:baseline;gap:.4rem;margin-top:.1rem">
-              <span id="customerCountBig" style="font-family:var(--font-display);font-size:2rem;font-weight:600;color:var(--accent);line-height:1">0</span>
-              <span style="font-size:.8rem;color:var(--text-muted)">visitors logged</span>
-            </div>
-          </div>
+    <!-- RIGHT: check-in + log -->
+    <div>
+      <div class="card panel">
+        <h3 id="ciTitle">Check in</h3>
+        <div id="ciIdle" class="empty">
+          <strong>No seat selected</strong>
+          Pick a free seat from the room to start.
         </div>
 
-        <form id="entryForm" autocomplete="off">
-
-          <!-- ── Voucher Section ── -->
-          <div class="form-section-label">Wi-Fi Voucher</div>
-
-          <div class="form-group">
-            <div class="voucher-meta-row">
-              <label class="form-label" style="margin-bottom:0" for="voucherSelect">
-                Select Voucher Code
-              </label>
-              <span class="voucher-available-pill">
-                <span id="voucherAvailableCount">0</span> available
-              </span>
+        <form id="fEntry" style="display:none">
+          <div class="field">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem">
+              <span class="label" style="margin:0">Voucher</span>
+              <span class="pill" id="pVouchers">0 available</span>
             </div>
 
-            <!-- Searchable voucher dropdown -->
-            <div class="voucher-field-wrap">
-              <span class="voucher-search-icon">🔍</span>
-              <input
-                type="text"
-                id="voucherSearch"
-                class="voucher-search-input"
-                placeholder="Filter by code…"
-                autocomplete="off"
-                spellcheck="false"
-              />
-              <select
-                id="voucherSelect"
-                class="form-select"
-                required
-              >
-                <option value="">Loading vouchers…</option>
-              </select>
+            <div id="vLive">
+              <div class="durs" id="durs"></div>
+              <div class="codes" id="codes"></div>
             </div>
 
-            <p style="font-size:.73rem;color:var(--text-muted);margin-top:.45rem;line-height:1.5">
-              Only unused vouchers are listed. The dropdown refreshes after each sync.
-            </p>
-          </div>
-
-          <!-- ── Seat & Amount Section ── -->
-          <div class="form-section-label">Booking Details</div>
-
-          <div class="form-group">
-            <label class="form-label" for="seatSelect">Seat / Space</label>
-            <select id="seatSelect" class="form-select" required>
-              <option value="">Select seat</option>
-              <option value="1">Seat 1</option>
-              <option value="2">Seat 2</option>
-              <option value="3">Seat 3</option>
-              <option value="4">Seat 4</option>
-              <option value="5">Seat 5</option>
-              <option value="6">Seat 6</option>
-              <option value="7">Seat 7</option>
-              <option value="8">Seat 8</option>
-              <option value="9">Seat 9</option>
-              <option value="10">Seat 10</option>
-              <option value="11">Seat 11</option>
-              <option value="12">Seat 12</option>
-              <option value="13">Seat 13</option>
-              <option value="14">Seat 14</option>
-              <option value="15">Seat 15</option>
-            </select>
-          </div>
-
-          <!-- ── Time Section ── -->
-          <div class="form-section-label">Session Times</div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="timeInInput">Time In</label>
-              <input type="time" id="timeInInput" class="form-control" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="timeOutInput">
-                Time Out
-                <span style="font-size:.68rem;color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0">
-                  (auto-filled by sync)
-                </span>
-              </label>
-              <input type="time" id="timeOutInput" class="form-control" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="durationInput">
-                Duration (hrs)
-                <span style="font-size:.68rem;color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0">
-                  (auto)
-                </span>
-              </label>
-              <input
-                type="number"
-                id="durationInput"
-                class="form-control"
-                placeholder="From voucher"
-                step="0.01"
-                min="0"
-                readonly
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="amountInput">Amount Paid</label>
-              <div class="input-prefix-wrap">
-                <span class="input-prefix">₦</span>
-                <input
-                  type="number"
-                  id="amountInput"
-                  class="form-control"
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                />
+            <div id="vManual" style="display:none">
+              <input id="mCode" class="input mono" placeholder="Type the voucher code" autocomplete="off" />
+              <div class="row-2" style="margin-top:.6rem">
+                <div>
+                  <label class="label" for="mDur">Hours</label>
+                  <select id="mDur" class="input">
+                    <option value="1">1 hour</option>
+                    <option value="2">2 hours</option>
+                    <option value="3">3 hours</option>
+                    <option value="4">4 hours</option>
+                    <option value="6">6 hours</option>
+                    <option value="8">8 hours</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="label" for="tIn">Time in</label>
+                  <input id="tIn" class="input" type="time" required />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="submit-area">
-            <button type="submit" id="submitEntryBtn" class="btn btn-success btn-lg">
-              ＋ Save Entry
+            <button type="button" class="btn btn-quiet btn-sm" id="bToggle" style="margin-top:.6rem">
+              Type a code instead
             </button>
           </div>
 
+          <div id="liveTime" class="field">
+            <label class="label" for="tIn2">Time in</label>
+            <input id="tIn2" class="input" type="time" required />
+          </div>
+
+          <div class="field">
+            <label class="label" for="amt">Amount paid</label>
+            <div class="input-money">
+              <span class="naira">₦</span>
+              <input id="amt" class="input mono" type="number" min="0" step="50" placeholder="0" required />
+            </div>
+          </div>
+
+          <button class="btn btn-go btn-lg" type="submit" id="bSave">Check in</button>
+          <button class="btn btn-quiet btn-lg" type="button" id="bCancel" style="margin-top:.55rem">Cancel</button>
         </form>
-      </div><!-- /entry-panel -->
+      </div>
 
-      <!-- RIGHT: Today's log -->
-      <div class="log-panel">
-        <div class="log-panel-header">
-          <h3>Today's Log</h3>
-        </div>
-
-        <div class="table-wrap">
-          <div class="table-scroll">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Voucher</th>
-                  <th>Seat</th>
-                  <th>Time In</th>
-                  <th>Time Out</th>
-                  <th>Duration</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="entriesTableBody"></tbody>
-            </table>
-          </div>
-          <div id="tableEmpty">
-            <div class="empty-icon">📋</div>
-            <p>No entries yet. Add your first visitor above.</p>
+      <div class="card panel">
+        <h3>Today's log</h3>
+        <div class="log-scroll">
+          <table class="tbl">
+            <thead>
+              <tr><th>Voucher</th><th>Seat</th><th>In</th><th>Until</th><th style="text-align:right">Paid</th></tr>
+            </thead>
+            <tbody id="logBody"></tbody>
+          </table>
+          <div id="logEmpty" class="empty">
+            <strong>Nothing logged yet</strong>
+            The first check-in of the day shows up here.
           </div>
         </div>
-      </div><!-- /log-panel -->
+      </div>
+    </div>
 
-    </div><!-- /entry-layout -->
-  </section>
+  </div>
+</section>
 
+<div id="toaster"></div>
 
-  <!-- ══════════════════ SCRIPTS ══════════════════ -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="app.js"></script>
-  <script src="receptionist.js"></script>
-  <script>
-    window.addEventListener('load', () => {
-      setTimeInNow();
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('SW registered:', reg.scope))
-          .catch(err => console.warn('SW failed:', err));
-      }
-    });
-  </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   Las Noches — front desk
+   Talks only to Supabase. Never to the Omada controller.
+   ══════════════════════════════════════════════════════════ */
+
+const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+const $  = id => document.getElementById(id);
+const SEATS = 15;
+
+const state = {
+  session: null,       // { id, session_date, receptionist_name }
+  seats: [],           // from seat_status
+  vouchers: [],        // unused vouchers
+  entries: [],         // today's entries
+  pickedSeat: null,
+  pickedDur: null,
+  pickedCode: null,
+  manual: false,
+};
+
+/* ---------- helpers ---------- */
+
+function toast(msg, kind = '') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + kind;
+  el.textContent = msg;
+  $('toaster').appendChild(el);
+  setTimeout(() => el.remove(), 3800);
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  $(id).classList.add('on');
+}
+
+// Lagos is UTC+1 year-round, no DST — a fixed offset is always correct.
+const WAT = ms => new Date(ms + 60 * 60 * 1000);
+function watNow() { return WAT(Date.now()); }
+function watToday() { return watNow().toISOString().slice(0, 10); }
+function watClock() { return watNow().toISOString().slice(11, 16); }
+
+function hhmm(iso) {
+  if (!iso) return '—';
+  return WAT(new Date(iso).getTime()).toISOString().slice(11, 16);
+}
+
+function remaining(iso) {
+  const mins = Math.max(0, Math.round((new Date(iso) - Date.now()) / 60000));
+  if (mins >= 60) return `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, '0')}m`;
+  return `${mins}m`;
+}
+
+const naira = n => '₦' + Number(n || 0).toLocaleString('en-NG');
+
+/* ---------- auth ---------- */
+/* The PIN is the password on a fixed staff account. This gives a real
+   Supabase JWT (the schema grants everything to `authenticated`, never
+   `anon`, so voucher codes are never public) with no edge function to
+   deploy. Swap for a PIN edge function later without touching this UI. */
+
+$('fLogin').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('bLogin');
+  btn.disabled = true; btn.textContent = 'Checking…';
+
+  const { error } = await sb.auth.signInWithPassword({
+    email: CONFIG.STAFF_EMAIL,
+    password: $('pin').value.trim(),
+  });
+
+  btn.disabled = false; btn.textContent = 'Open the desk';
+
+  if (error) { toast('That PIN did not work. Try again.', 'bad'); $('pin').value = ''; return; }
+  await afterLogin();
+});
+
+$('bSignOut').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  state.session = null;
+  show('scLogin');
+});
+
+$('bChange').addEventListener('click', () => { openSession(); });
+
+async function afterLogin() {
+  const saved = sessionStorage.getItem('ln_session');
+  if (saved) {
+    state.session = JSON.parse(saved);
+    return startDesk();
+  }
+  openSession();
+}
+
+function openSession() {
+  $('sDate').value = watToday();
+  $('sName').value = state.session?.receptionist_name || '';
+  show('scSession');
+}
+
+/* ---------- session ---------- */
+
+$('fSession').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('bSession');
+  btn.disabled = true; btn.textContent = 'Starting…';
+
+  const date = $('sDate').value;
+  const name = $('sName').value.trim();
+
+  let { data, error } = await sb.from('sessions')
+    .select('*').eq('session_date', date).eq('receptionist_name', name).maybeSingle();
+
+  if (!data && !error) {
+    ({ data, error } = await sb.from('sessions')
+      .insert({ session_date: date, receptionist_name: name })
+      .select().single());
+  }
+
+  btn.disabled = false; btn.textContent = 'Start shift';
+
+  if (error) { toast('Could not start the shift: ' + error.message, 'bad'); return; }
+
+  state.session = data;
+  sessionStorage.setItem('ln_session', JSON.stringify(data));
+  startDesk();
+});
+
+async function startDesk() {
+  show('scDesk');
+  $('pShift').textContent = `${state.session.receptionist_name} · ${state.session.session_date}`;
+  await Promise.all([loadSeats(), loadVouchers(), loadEntries(), loadSync()]);
+  subscribe();
+  setInterval(() => { loadSeats(); loadSync(); }, 20000);
+}
+
+/* ---------- the room ---------- */
+
+async function loadSeats() {
+  const { data, error } = await sb.from('seat_status').select('*').order('seat_number');
+  if (error) { console.error(error); return; }
+  state.seats = data || [];
+  renderRoom();
+  checkExpiries();
+}
+
+function renderRoom() {
+  const room = $('room');
+  room.innerHTML = '';
+
+  let free = 0, busy = 0;
+
+  for (let n = 1; n <= SEATS; n++) {
+    const s = state.seats.find(x => x.seat_number === n) || { seat_number: n, is_active: true, is_occupied: false };
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'seat';
+    btn.dataset.seat = n;
+
+    if (!s.is_active) {
+      btn.classList.add('off');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="n">${n}</span><span class="s">Closed</span>`;
+    } else if (s.is_occupied) {
+      busy++;
+      btn.classList.add('busy');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="n">${n}</span><span class="s">${remaining(s.occupied_until)}</span>`;
+      btn.title = `Frees up at ${hhmm(s.occupied_until)}`;
+      addRing(btn, s.occupied_until);
+    } else {
+      free++;
+      btn.classList.add('free');
+      if (state.pickedSeat === n) btn.classList.add('sel');
+      btn.innerHTML = `<span class="n">${n}</span><span class="s">Free</span>`;
+      btn.addEventListener('click', () => pickSeat(n));
+    }
+    room.appendChild(btn);
+  }
+
+  $('nFree').textContent = free;
+  $('nBusy').textContent = busy;
+}
+
+/* The ring depletes as paid time runs out. We don't know the original
+   duration from seat_status, so we scale against a 4h reference —
+   it reads as "how much is left", which is the only thing that matters. */
+function addRing(btn, until) {
+  const left = Math.max(0, new Date(until) - Date.now());
+  const pct = Math.min(1, left / (4 * 3600 * 1000));
+  const deg = Math.round(pct * 360);
+  const ring = document.createElement('span');
+  ring.className = 'ring';
+  ring.style.background =
+    `conic-gradient(var(--brass) ${deg}deg, rgba(227,167,92,.12) ${deg}deg)`;
+  btn.appendChild(ring);
+}
+
+function pickSeat(n) {
+  state.pickedSeat = n;
+  state.pickedCode = null;
+  renderRoom();
+  $('ciIdle').style.display = 'none';
+  $('fEntry').style.display = 'block';
+  $('ciTitle').textContent = `Check in · seat ${n}`;
+  $('tIn2').value = watClock();
+  $('tIn').value = watClock();
+  $('amt').value = '';
+  renderVouchers();
+  $('amt').focus();
+}
+
+$('bCancel').addEventListener('click', resetForm);
+
+function resetForm() {
+  state.pickedSeat = null;
+  state.pickedCode = null;
+  state.pickedDur = null;
+  renderRoom();
+  $('fEntry').style.display = 'none';
+  $('ciIdle').style.display = 'block';
+  $('ciTitle').textContent = 'Check in';
+}
+
+/* ---------- vouchers ---------- */
+
+async function loadVouchers() {
+  const { data, error } = await sb.from('vouchers')
+    .select('code,duration_hrs,omada_status')
+    .eq('status', 'unused')
+    .order('duration_hrs');
+
+  if (error) { console.error(error); return; }
+  state.vouchers = (data || []).filter(v => v.omada_status !== 'expired');
+  $('pVouchers').textContent = `${state.vouchers.length} available`;
+  renderVouchers();
+}
+
+function renderVouchers() {
+  const none = state.vouchers.length === 0;
+
+  // No synced vouchers (e.g. controller offline) — fall back to typing.
+  if (none && !state.manual) setManual(true, true);
+
+  $('vLive').style.display   = state.manual ? 'none' : 'block';
+  $('vManual').style.display = state.manual ? 'block' : 'none';
+  $('liveTime').style.display = state.manual ? 'none' : 'block';
+  $('bToggle').textContent = state.manual ? 'Pick from synced list' : 'Type a code instead';
+  $('bToggle').disabled = none && state.manual;
+
+  if (state.manual) return;
+
+  const groups = {};
+  for (const v of state.vouchers) {
+    const k = v.duration_hrs ?? 0;
+    (groups[k] ||= []).push(v);
+  }
+  const keys = Object.keys(groups).map(Number).sort((a, b) => a - b);
+  if (state.pickedDur == null || !groups[state.pickedDur]) state.pickedDur = keys[0] ?? null;
+
+  $('durs').innerHTML = '';
+  for (const k of keys) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'dur' + (k === state.pickedDur ? ' on' : '');
+    b.innerHTML = `${k} hr<span class="cnt">${groups[k].length}</span>`;
+    b.addEventListener('click', () => { state.pickedDur = k; state.pickedCode = null; renderVouchers(); });
+    $('durs').appendChild(b);
+  }
+
+  $('codes').innerHTML = '';
+  for (const v of (groups[state.pickedDur] || [])) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'code' + (v.code === state.pickedCode ? ' on' : '');
+    b.textContent = v.code;
+    b.addEventListener('click', () => { state.pickedCode = v.code; renderVouchers(); $('amt').focus(); });
+    $('codes').appendChild(b);
+  }
+}
+
+function setManual(on, silent) {
+  state.manual = on;
+  if (!silent) renderVouchers();
+}
+
+$('bToggle').addEventListener('click', () => setManual(!state.manual));
+
+/* ---------- save ---------- */
+
+$('fEntry').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!state.session) return;
+
+  const code = state.manual ? $('mCode').value.trim().toUpperCase() : state.pickedCode;
+  const dur  = state.manual ? Number($('mDur').value) : Number(state.pickedDur);
+  const tIn  = state.manual ? $('tIn').value : $('tIn2').value;
+  const amt  = Number($('amt').value);
+
+  if (!code) { toast('Pick or type a voucher code first.', 'bad'); return; }
+  if (!dur)  { toast('Choose how many hours this voucher is for.', 'bad'); return; }
+
+  const btn = $('bSave');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const { error } = await sb.rpc('claim_voucher_and_log_entry', {
+    p_session_id:   state.session.id,
+    p_entry_date:   state.session.session_date,
+    p_voucher_code: code,
+    p_seat_number:  state.pickedSeat,
+    p_time_in:      tIn,
+    p_duration_hrs: dur,
+    p_amount_paid:  amt,
+  });
+
+  btn.disabled = false; btn.textContent = 'Check in';
+
+  if (error) {
+    const m = error.message || '';
+    if (m.includes('VOUCHER_UNAVAILABLE')) {
+      toast('That voucher was just used by someone else. Pick another.', 'bad');
+      await loadVouchers();
+    } else if (m.includes('SEAT_OCCUPIED')) {
+      toast('That seat was just taken. Pick another.', 'bad');
+      await loadSeats();
+    } else {
+      toast('Could not save: ' + m, 'bad');
+    }
+    return;
+  }
+
+  toast(`Seat ${state.pickedSeat} checked in for ${dur}h.`, 'ok');
+  resetForm();
+  await Promise.all([loadSeats(), loadVouchers(), loadEntries()]);
+});
+
+/* ---------- today's log ---------- */
+
+async function loadEntries() {
+  const { data, error } = await sb.from('entries')
+    .select('voucher_code,seat_number,time_in,duration_hrs,amount_paid,expires_at')
+    .eq('entry_date', state.session.session_date)
+    .order('time_in', { ascending: false });
+
+  if (error) { console.error(error); return; }
+  state.entries = data || [];
+  $('nToday').textContent = state.entries.length;
+
+  const body = $('logBody');
+  body.innerHTML = '';
+  $('logEmpty').style.display = state.entries.length ? 'none' : 'block';
+
+  for (const e of state.entries) {
+    const live = new Date(e.expires_at) > new Date();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono">${e.voucher_code}</td>
+      <td><span class="pill ${live ? 'pill-brass' : ''}">${e.seat_number}</span></td>
+      <td class="mono">${e.time_in.slice(0, 5)}</td>
+      <td class="mono ${live ? '' : 'dim'}">${hhmm(e.expires_at)}</td>
+      <td class="mono" style="text-align:right">${naira(e.amount_paid)}</td>`;
+    body.appendChild(tr);
+  }
+}
+
+/* ---------- sync heartbeat ---------- */
+
+async function loadSync() {
+  const { data } = await sb.from('sync_state').select('*').eq('id', 'omada').maybeSingle();
+  const ribbon = $('ribbon'), dot = $('syncDot'), txt = $('syncText');
+
+  if (!data?.last_success_at) {
+    ribbon.classList.add('stale');
+    dot.style.color = 'var(--rose)';
+    txt.innerHTML = 'Voucher sync has never run — type codes by hand for now.';
+    return;
+  }
+
+  const mins = Math.round((Date.now() - new Date(data.last_success_at)) / 60000);
+  if (mins > 5) {
+    ribbon.classList.add('stale');
+    dot.style.color = 'var(--rose)';
+    txt.innerHTML = `Vouchers last synced ${mins} min ago. Check the sync computer at the desk.`;
+  } else {
+    ribbon.classList.remove('stale');
+    dot.style.color = 'var(--mint)';
+    txt.innerHTML = `Vouchers up to date · ${data.voucher_count ?? 0} synced · ${mins < 1 ? 'just now' : mins + ' min ago'}`;
+  }
+}
+
+/* ---------- realtime ---------- */
+
+function subscribe() {
+  sb.channel('desk')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => {
+      loadSeats(); loadEntries();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'vouchers' }, () => {
+      loadVouchers();
+    })
+    .subscribe();
+}
+
+/* ══════════════════════════════════════════════════════════
+   EXPIRY ALERTS
+   A seat's paid time running out is the one thing the
+   receptionist must not miss. Fires a real OS notification
+   (via the service worker, so it shows even in the background)
+   plus an in-page toast and a sound.
+   ══════════════════════════════════════════════════════════ */
+
+const alerted = new Set();          // entry keys already announced
+const WARN_MIN = 5;                 // heads-up this many minutes before
+
+function loadAlerted() {
+  try { JSON.parse(sessionStorage.getItem('ln_alerted') || '[]').forEach(k => alerted.add(k)); } catch {}
+}
+function saveAlerted() {
+  sessionStorage.setItem('ln_alerted', JSON.stringify([...alerted]));
+}
+
+async function notify(title, body, tag) {
+  try {
+    const reg = await navigator.serviceWorker?.getRegistration();
+    if (reg && Notification.permission === 'granted') {
+      await reg.showNotification(title, {
+        body, tag,
+        icon: 'icon-192.png',
+        badge: 'icon-192.png',
+        vibrate: [140, 70, 140],
+        requireInteraction: true,
+      });
+      return;
+    }
+    if (Notification.permission === 'granted') new Notification(title, { body, tag });
+  } catch (e) { console.warn('notify failed', e); }
+}
+
+let audioCtx;
+function chime() {
+  try {
+    audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sine'; o.frequency.value = 880;
+    g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.7);
+    o.start(); o.stop(audioCtx.currentTime + 0.7);
+  } catch {}
+}
+
+function checkExpiries() {
+  const now = Date.now();
+
+  for (const s of state.seats) {
+    if (!s.is_occupied || !s.occupied_until) continue;
+    const ms = new Date(s.occupied_until) - now;
+    const mins = ms / 60000;
+
+    const warnKey = `w${s.seat_number}-${s.occupied_until}`;
+    const doneKey = `d${s.seat_number}-${s.occupied_until}`;
+
+    if (mins <= WARN_MIN && mins > 0 && !alerted.has(warnKey)) {
+      alerted.add(warnKey); saveAlerted();
+      notify(`Seat ${s.seat_number} — ${Math.ceil(mins)} min left`,
+             'Time is nearly up. Let them know or take a renewal.',
+             warnKey);
+      toast(`Seat ${s.seat_number}: ${Math.ceil(mins)} minutes left.`);
+      chime();
+    }
+
+    if (mins <= 0 && !alerted.has(doneKey)) {
+      alerted.add(doneKey); saveAlerted();
+      notify(`Seat ${s.seat_number} — time is up`,
+             'The paid session has ended. The seat is now free.',
+             doneKey);
+      toast(`Seat ${s.seat_number} time is up.`, 'bad');
+      chime();
+    }
+  }
+}
+
+async function askNotifyPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') { $('bellRow').style.display = 'none'; return; }
+  if (Notification.permission === 'denied') {
+    $('bellText').textContent = 'Alerts are blocked in your browser settings. Turn them on to get seat warnings.';
+    $('bellBtn').style.display = 'none';
+    return;
+  }
+  $('bellRow').style.display = 'flex';
+}
+
+$('bellBtn').addEventListener('click', async () => {
+  const res = await Notification.requestPermission();
+  if (res === 'granted') {
+    $('bellRow').style.display = 'none';
+    toast('Alerts on. You will hear when a seat is nearly up.', 'ok');
+    notify('Alerts are on', 'You will be told before each seat runs out.', 'hello');
+  } else {
+    toast('Alerts stayed off.', 'bad');
+  }
+});
+
+/* ---------- boot ---------- */
+
+(async () => {
+  loadAlerted();
+  if ('serviceWorker' in navigator) {
+    try { await navigator.serviceWorker.register('sw.js'); } catch {}
+  }
+  const { data } = await sb.auth.getSession();
+  if (data.session) await afterLogin();
+  askNotifyPermission();
+})();
+</script>
 </body>
 </html>
