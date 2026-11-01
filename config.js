@@ -8,7 +8,7 @@ const CONFIG = {
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlbWRreHV1eGtpaXRxZnRna3NuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NzUyNDMsImV4cCI6MjA5NTU1MTI0M30.BXCboszU_P6NGjglgWFuwf5NbVeaQy_4yDm6O5NyAoo',
 
   // WhatsApp number in international format, no + and no spaces
-  WHATSAPP: '2348000000000',
+  WHATSAPP: '2349036801827',
 
   // The fixed staff account the front-desk PIN signs into.
   // Create it once in Supabase > Authentication > Users.
