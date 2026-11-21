@@ -413,18 +413,18 @@ a.pill:hover { border-color: var(--brand); }
 }
 
 /* ══════════════ GAMING ══════════════ */
-.games { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; max-width: 760px; }
+.games { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; width: 100%; }
 .game {
     position: relative; isolation: isolate; overflow: hidden;
-    aspect-ratio: 3 / 4; padding: 12px; border-radius: 14px;
+    aspect-ratio: 3 / 4; padding: 14px; border-radius: 16px;
     display: flex; flex-direction: column; justify-content: flex-end;
     border: 1px solid var(--line); color: #fff;
 }
 .game::before { content: ""; position: absolute; inset: 0; z-index: -2; background: var(--g) center / cover no-repeat; transition: transform .35s var(--ease); }
 .game::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(6, 8, 18, .12) 25%, rgba(6, 8, 18, .88)); }
 .game:hover::before { transform: scale(1.035); }
-.game b { position: relative; font: 700 .82rem/1.15 var(--f-display); text-shadow: 0 2px 12px rgba(0, 0, 0, .9); }
-.game .game-price { position: relative; margin-top: 6px; font: 800 .88rem/1 var(--f-display); color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, .95); }
+.game b { position: relative; font: 700 .88rem/1.15 var(--f-display); text-shadow: 0 2px 12px rgba(0, 0, 0, .9); }
+.game .game-price { position: relative; margin-top: 7px; font: 800 .94rem/1 var(--f-display); color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, .95); }
 .game-fc27 { --g: url("IMAGES/EA%20FC27.jpg"); }
 .game-f1 { --g: url("IMAGES/Formel1%202024.jpg"); }
 .game-fortnite { --g: url("IMAGES/FORTNITE.jpg"); }
@@ -432,8 +432,10 @@ a.pill:hover { border-color: var(--brand); }
 .game-gta { --g: url("IMAGES/GTA%20VI.jpg"); }
 .games-cta { margin-top: 18px; }
 @media (min-width: 720px) {
-    .games { max-width: 760px; gap: 14px; }
-    .game { padding: 16px; }
+    .games { gap: 16px; }
+    .game { padding: 18px; }
+    .game b { font-size: 1.05rem; }
+    .game .game-price { font-size: 1.08rem; }
 }
 
 /* ══════════════ FACILITIES ══════════════ */
@@ -715,10 +717,6 @@ a.pill:hover { border-color: var(--brand); }
                 <div><div class="sub-name">Monthly <span class="sub-flag">Popular</span></div><div class="sub-term">1 month</div></div>
                 <span class="sub-go"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp</span>
             </a>
-            <a class="sub wa-link reveal" data-msg="Hi Las Noches, I would like to ask about the yearly plan." href="#" target="_blank" rel="noopener" aria-label="Yearly plan, ask on WhatsApp">
-                <div><div class="sub-name">Yearly</div><div class="sub-term">1 year</div></div>
-                <span class="sub-go"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp</span>
-            </a>
         </div>
     </div>
 </section>
@@ -753,7 +751,7 @@ a.pill:hover { border-color: var(--brand); }
 <!-- ═══ HOURS ═══ -->
 <section class="sec" id="hours">
     <div class="wrap">
-        <div class="sec-head"><h2>Hours &amp; Location</h2></div>
+        <div class="sec-head"><h2>Opening/Closing time &amp; Location</h2></div>
         <div class="visit">
             <div class="card reveal">
                 <div class="card-k">Every day</div>
@@ -1163,6 +1161,7 @@ a.pill:hover { border-color: var(--brand); }
 
     function setRvWa(text) {
         Array.prototype.forEach.call(document.querySelectorAll('.rv-wa'), function (a) {
+
             a.href = WA + '?text=' + encodeURIComponent(text);
         });
     }
