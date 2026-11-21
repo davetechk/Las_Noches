@@ -413,28 +413,27 @@ a.pill:hover { border-color: var(--brand); }
 }
 
 /* ══════════════ GAMING ══════════════ */
-.games { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-width: 720px; }
+.games { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; max-width: 720px; }
 .game {
     position: relative; isolation: isolate; overflow: hidden;
     aspect-ratio: 3 / 4; padding: 12px; border-radius: 16px;
     display: flex; flex-direction: column; justify-content: flex-end;
     border: 1px solid var(--line); color: #fff;
 }
-.game::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--g); }
-.game .game-mark {
-    position: absolute; top: 10px; left: 12px;
-    font: 700 2.6rem/1 var(--f-display); letter-spacing: -.05em;
-    margin: 0; color: transparent; -webkit-text-stroke: 1.5px rgba(255, 255, 255, .5);
-}
-.game b { font: 700 1rem/1.15 var(--f-display); }
-.game span { margin-top: 3px; font-size: .78rem; color: rgba(255, 255, 255, .82); }
-.game:nth-child(1) { --g: linear-gradient(160deg, #7c3aed, #1e1b4b); }
-.game:nth-child(2) { --g: linear-gradient(160deg, #0ea5e9, #0c1a3d); }
-.game:nth-child(3) { --g: linear-gradient(160deg, #d97706, #3b1a08); }
+.game::before { content: ""; position: absolute; inset: 0; z-index: -2; background: var(--g) center / cover no-repeat; transition: transform .35s var(--ease); }
+.game::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(6, 8, 18, .04) 35%, rgba(6, 8, 18, .82)); }
+.game:hover::before { transform: scale(1.035); }
+.game b { position: relative; font: 700 1rem/1.15 var(--f-display); text-shadow: 0 2px 12px rgba(0, 0, 0, .75); }
+.game .game-price { position: relative; margin-top: 7px; font: 700 .92rem/1 var(--f-display); color: #fff; text-shadow: 0 2px 12px rgba(0, 0, 0, .75); }
+.game-fc27 { --g: url("IMAGES/EA%20FC27.jpg"); }
+.game-f1 { --g: url("IMAGES/Formel1%202024.jpg"); }
+.game-fortnite { --g: url("IMAGES/FORTNITE.jpg"); }
+.game-nba { --g: url("IMAGES/NBA%202K24.jpg"); }
+.game-gta { --g: url("IMAGES/GTA%20VI.jpg"); }
 .games-cta { margin-top: 18px; }
 @media (min-width: 720px) {
+    .games { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
     .game { padding: 18px; }
-    .game .game-mark { font-size: 4rem; top: 14px; left: 18px; }
     .game b { font-size: 1.25rem; }
 }
 
@@ -663,7 +662,7 @@ a.pill:hover { border-color: var(--brand); }
 <!-- ═══ VOUCHERS ═══ -->
 <section class="sec sec-buy" id="buy">
     <div class="wrap">
-        <div class="sec-head"><h2>Buy a Voucher</h2></div>
+        <div class="sec-head"><h2>Get your Space</h2></div>
         <div class="vgrid" id="voucherGrid"></div>
         <p class="warn">
             <svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>
@@ -730,9 +729,11 @@ a.pill:hover { border-color: var(--brand); }
     <div class="wrap">
         <div class="sec-head"><h2>PS5 Lounge</h2></div>
         <div class="games reveal">
-            <div class="game"><span class="game-mark" aria-hidden="true">MK</span><b>Mortal Kombat</b><span>Fighting</span></div>
-            <div class="game"><span class="game-mark" aria-hidden="true">FC</span><b>FC 26</b><span>Football</span></div>
-            <div class="game"><span class="game-mark" aria-hidden="true">NBA</span><b>NBA</b><span>Basketball</span></div>
+            <div class="game game-fc27"><b>FC 27</b><span class="game-price">₦500</span></div>
+            <div class="game game-f1"><b>Formula 1</b><span class="game-price">₦1,000</span></div>
+            <div class="game game-fortnite"><b>Fortnite</b><span class="game-price">₦600</span></div>
+            <div class="game game-nba"><b>NBA</b><span class="game-price">₦500</span></div>
+            <div class="game game-gta"><b>GTA VI</b><span class="game-price">₦2,000</span></div>
         </div>
         <div class="games-cta">
             <a class="btn btn-ghost wa-link" data-msg="Hi Las Noches, I would like to ask about the PS5 lounge." href="#" target="_blank" rel="noopener">
@@ -1036,12 +1037,10 @@ a.pill:hover { border-color: var(--brand); }
             if (left === null) {
                 c.tag.hidden = true;
             } else {
-                c.tag.hidden = false;
-                c.tag.textContent = out ? 'Sold out' : left + ' left';
-                c.tag.className = 'v-tag ' + (out ? 'is-out' : left <= LOW_STOCK ? 'is-low' : 'is-ok');
+                c.tag.hidden = true;
             }
             c.el.setAttribute('aria-label',
-                p.label + ', ' + naira(p.amount_ngn) + (out ? ', sold out' : left !== null ? ', ' + left + ' left' : ''));
+                p.label + ', ' + naira(p.amount_ngn) + (out ? ', sold out' : ''));
         });
     }
 
@@ -1153,6 +1152,7 @@ a.pill:hover { border-color: var(--brand); }
         document.body.style.overflow = 'hidden';
         $('rvCard').focus();
     }
+
 
     function rvClose() {
         $('rvScrim').classList.remove('open');
