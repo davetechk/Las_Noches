@@ -99,6 +99,7 @@
     border-radius: var(--r);
     padding: 2px;
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor; mask-composite: exclude;
     pointer-events: none;
   }
@@ -143,6 +144,15 @@
   .panel h3 { font-size: 1.02rem; margin-bottom: .9rem; }
 
   .log-scroll { max-height: 380px; overflow-y: auto; }
+  .seat-select {
+    min-width: 92px;
+    padding: .42rem .55rem;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background: var(--ink);
+    color: var(--paper);
+    font: 600 .78rem/1 var(--body);
+  }
 
   /* scrollbars */
   ::-webkit-scrollbar { width: 9px; height: 9px; }
@@ -664,7 +674,7 @@ $('fEntry').addEventListener('submit', async e => {
 
 async function loadEntries() {
   const { data, error } = await sb.from('entries')
-    .select('voucher_code,seat_number,time_in,duration_hrs,amount_paid,expires_at')
+    .select('id,voucher_code,seat_number,time_in,duration_hrs,amount_paid,expires_at')
     .eq('entry_date', state.session.session_date)
     .order('time_in', { ascending: false });
 
@@ -679,12 +689,36 @@ async function loadEntries() {
   for (const e of state.entries) {
     const live = new Date(e.expires_at) > new Date();
     const tr = document.createElement('tr');
+    const seatLabel = e.seat_number == null
+      ? '<select class="seat-select" aria-label="Assign seat"><option value="">Choose seat</option>' +
+        Array.from({ length: 15 }, (_, i) => `<option value="${i + 1}">Seat ${i + 1}</option>`).join('') +
+        '<option value="16">Couch</option></select>'
+      : `<span class="pill ${live ? 'pill-brass' : ''}">${e.seat_number === 16 ? 'Couch' : 'Seat ' + e.seat_number}</span>`;
     tr.innerHTML = `
       <td class="mono">${e.voucher_code}</td>
-      <td><span class="pill ${live ? 'pill-brass' : ''}">${e.seat_number}</span></td>
+      <td>${seatLabel}</td>
       <td class="mono">${e.time_in.slice(0, 5)}</td>
       <td class="mono ${live ? '' : 'dim'}">${hhmm(e.expires_at)}</td>
       <td class="mono" style="text-align:right">${naira(e.amount_paid)}</td>`;
+
+    if (e.seat_number == null) {
+      const select = tr.querySelector('select');
+      select.addEventListener('change', async () => {
+        if (!select.value) return;
+        const seat = Number(select.value);
+        const { error } = await sb.rpc('assign_entry_seat', {
+          p_entry_id: e.id,
+          p_seat_number: seat,
+        });
+        if (error) {
+          toast(error.message.includes('SEAT_OCCUPIED') ? 'That seat is already occupied.' : 'Could not assign seat.', 'bad');
+          select.value = '';
+          return;
+        }
+        toast(seat === 16 ? 'Couch assigned.' : `Seat ${seat} assigned.`, 'ok');
+        await Promise.all([loadSeats(), loadEntries()]);
+      });
+    }
     body.appendChild(tr);
   }
 }
