@@ -413,18 +413,18 @@ a.pill:hover { border-color: var(--brand); }
 }
 
 /* ══════════════ GAMING ══════════════ */
-.games { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; max-width: 700px; }
+.games { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; max-width: 760px; }
 .game {
     position: relative; isolation: isolate; overflow: hidden;
-    aspect-ratio: 3 / 4; padding: 10px; border-radius: 14px;
+    aspect-ratio: 3 / 4; padding: 12px; border-radius: 14px;
     display: flex; flex-direction: column; justify-content: flex-end;
     border: 1px solid var(--line); color: #fff;
 }
 .game::before { content: ""; position: absolute; inset: 0; z-index: -2; background: var(--g) center / cover no-repeat; transition: transform .35s var(--ease); }
 .game::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(6, 8, 18, .12) 25%, rgba(6, 8, 18, .88)); }
 .game:hover::before { transform: scale(1.035); }
-.game b { position: relative; font: 700 .78rem/1.15 var(--f-display); text-shadow: 0 2px 12px rgba(0, 0, 0, .9); }
-.game .game-price { position: relative; margin-top: 6px; font: 800 .84rem/1 var(--f-display); color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, .95); }
+.game b { position: relative; font: 700 .82rem/1.15 var(--f-display); text-shadow: 0 2px 12px rgba(0, 0, 0, .9); }
+.game .game-price { position: relative; margin-top: 6px; font: 800 .88rem/1 var(--f-display); color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, .95); }
 .game-fc27 { --g: url("IMAGES/EA%20FC27.jpg"); }
 .game-f1 { --g: url("IMAGES/Formel1%202024.jpg"); }
 .game-fortnite { --g: url("IMAGES/FORTNITE.jpg"); }
@@ -432,8 +432,8 @@ a.pill:hover { border-color: var(--brand); }
 .game-gta { --g: url("IMAGES/GTA%20VI.jpg"); }
 .games-cta { margin-top: 18px; }
 @media (min-width: 720px) {
-    .games { max-width: 700px; gap: 12px; }
-    .game { padding: 14px; }
+    .games { max-width: 760px; gap: 14px; }
+    .game { padding: 16px; }
 }
 
 /* ══════════════ FACILITIES ══════════════ */
@@ -733,11 +733,6 @@ a.pill:hover { border-color: var(--brand); }
             <div class="game game-fortnite"><b>Fortnite</b><span class="game-price">₦600</span></div>
             <div class="game game-nba"><b>NBA</b><span class="game-price">₦500</span></div>
             <div class="game game-gta"><b>GTA VI</b><span class="game-price">₦2,000</span></div>
-        </div>
-        <div class="games-cta">
-            <a class="btn btn-ghost wa-link" data-msg="Hi Las Noches, I would like to ask about the PS5 lounge." href="#" target="_blank" rel="noopener">
-                <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>Ask on WhatsApp
-            </a>
         </div>
     </div>
 </section>
